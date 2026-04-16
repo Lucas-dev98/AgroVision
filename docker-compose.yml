@@ -54,6 +54,7 @@ services:
       DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       REDIS_URL: redis://redis:6379/0
+      ANIMAL_SERVICE_PORT: 8000
     ports:
       - "${ANIMAL_SERVICE_PORT:-8000}:8000"
     depends_on:
