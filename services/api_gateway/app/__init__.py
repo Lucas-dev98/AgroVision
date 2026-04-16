@@ -21,7 +21,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS
+# CORS (primeiro)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,6 +29,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Logging Estruturado
+from app.middlewares.logging import StructuredLoggingMiddleware
+app.add_middleware(StructuredLoggingMiddleware)
 
 # Rate Limiting Middleware
 from app.middlewares import RateLimitMiddleware
