@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.services import AnimalService
 from app.schemas import AnimalCreate, AnimalUpdate, AnimalResponse, AnimalListResponse
-from shared.database import get_db
+from app.core.database import get_db
 
 router = APIRouter(
     prefix="/api/v1/animals",
