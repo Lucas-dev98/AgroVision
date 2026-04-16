@@ -31,6 +31,11 @@ app.add_middleware(
 )
 
 
+# Incluir rotas de proxy
+from app.api.proxy import router as proxy_router
+app.include_router(proxy_router)
+
+
 @app.get("/health", tags=["health"])
 async def health_check():
     """Health check endpoint"""
