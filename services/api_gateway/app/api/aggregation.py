@@ -15,7 +15,8 @@ logger = logging.getLogger("agrovision.aggregation")
 @router.get(
     "/dashboard/animal/{animal_id}",
     summary="Dashboard consolidado de animal",
-    description="Retorna dados do animal agregados com pesagens e cotações"
+    description="Retorna dados do animal agregados com pesagens e cotações",
+    tags=["Dashboard"]
 )
 async def get_animal_dashboard(
     animal_id: int = Path(..., gt=0, description="ID do animal"),
@@ -107,7 +108,8 @@ async def get_animal_dashboard(
 @router.get(
     "/dashboard/animals",
     summary="Dashboards consolidados de múltiplos animais",
-    description="Retorna dados agregados para múltiplos animais"
+    description="Retorna dados agregados para múltiplos animais",
+    tags=["Dashboard"]
 )
 async def get_animals_dashboard(
     ids: str = Query(
@@ -179,7 +181,8 @@ async def get_animals_dashboard(
 @router.get(
     "/aggregation/health",
     summary="Status dos serviços agregados",
-    description="Verifica disponibilidade dos serviços para agregação"
+    description="Verifica disponibilidade dos serviços para agregação",
+    tags=["Aggregation"]
 )
 async def aggregation_health():
     """
@@ -229,7 +232,8 @@ async def aggregation_health():
 @router.post(
     "/aggregation/cache/clear",
     summary="Limpar cache de agregação",
-    description="Remove todas as entradas do cache de agregação"
+    description="Remove todas as entradas do cache de agregação",
+    tags=["Aggregation"]
 )
 async def clear_aggregation_cache():
     """
