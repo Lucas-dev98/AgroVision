@@ -1,78 +1,136 @@
 version: '3.9'
 
 services:
-  # PostgreSQL - Banco Transacional Principal
-  postgres:
+  # ==================== DATABASE ====================
+  db:
     image: postgres:16-alpine
-    container_name: boi-postgres
+    container_name: agrovision-db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-boi_db}
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
+      POSTGRES_USER: ${DB_USER:-agrovision}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-agrovision}
+      POSTGRES_DB: ${DB_NAME:-agrovision}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - agrovision
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-agrovision}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
-  # MongoDB - Banco Não-Estruturado (Históricos)
-  mongodb:
-    image: mongo:7.0
-    container_name: boi-mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
-      MONGO_INITDB_DATABASE: ${MONGO_DB:-boi_mongodb}
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
 
-  # Redis - Cache e Sessões
+  # ==================== CACHE (REDIS) ====================
   redis:
     image: redis:7-alpine
-    container_name: boi-redis
+    container_name: agrovision-redis
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - agrovision
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
 
-  # MinIO - Storage S3-Compatible
-  minio:
-    image: minio/minio:latest
-    container_name: boi-minio
+
+  # ==================== MICROSERVICES ====================
+  
+  # Animal Service - Cattle Inventory Management (porta 8000)
+  animal-service:
+    build:
+      context: ./services/animal_service
+      dockerfile: Dockerfile
+    container_name: agrovision-animal-service
     environment:
-      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/0
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
+      - "${ANIMAL_SERVICE_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
       retries: 3
+      start_period: 10s
+    restart: unless-stopped
 
+
+  # Pesagem Service - Cattle Weighing Records (porta 8001)
+  pesagem-service:
+    build:
+      context: ./services/pesagem_service
+      dockerfile: Dockerfile
+    container_name: agrovision-pesagem-service
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/1
+    ports:
+      - "${PESAGEM_SERVICE_PORT:-8001}:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Cotacao Service - Cattle Pricing (porta 8002)
+  cotacao-service:
+    build:
+      context: ./services/cotacao_service
+      dockerfile: Dockerfile
+    container_name: agrovision-cotacao-service
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/2
+    ports:
+      - "${COTACAO_SERVICE_PORT:-8002}:8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+# ==================== VOLUMES ====================
 volumes:
-  postgres_data:
-  mongodb_data:
+  db_data:
+    driver: local
   redis_data:
-  minio_data:
+    driver: local
 
+
+# ==================== NETWORKS ====================
 networks:
-  default:
-    name: boi-network
+  agrovision:
+    driver: bridge
