@@ -1,7 +1,8 @@
 """FastAPI Application - API Gateway"""
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from typing import Dict, Any
 
 # Health check endpoint
 
@@ -112,7 +113,7 @@ async def health_check():
 
 
 @app.get("/", tags=["root"])
-async def root():
+async def root() -> Dict[str, Any]:
     """Root endpoint"""
     return {
         "name": "AgroVision API Gateway",
