@@ -1,6 +1,6 @@
 """Segurança e Autenticação JWT para API Gateway"""
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Set
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
@@ -64,15 +64,15 @@ def create_access_token(user_id: int, expires_delta: Optional[timedelta] = None)
         Token JWT codificado
     """
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode = {
+    to_encode: Dict[str, Any] = {
         "sub": str(user_id),
         "exp": expire,
         "type": "access",
-        "iat": datetime.utcnow()
+        "iat": datetime.now(timezone.utc)
     }
     
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -91,15 +91,15 @@ def create_refresh_token(user_id: int, expires_delta: Optional[timedelta] = None
         Token JWT refresh codificado
     """
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     
-    to_encode = {
+    to_encode: Dict[str, Any] = {
         "sub": str(user_id),
         "exp": expire,
         "type": "refresh",
-        "iat": datetime.utcnow()
+        "iat": datetime.now(timezone.utc)
     }
     
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -170,7 +170,10 @@ def extract_user_id_from_token(token: str) -> Optional[int]:
         return None
     
     try:
-        user_id = int(payload.get("sub"))
+        sub = payload.get("sub")
+        if sub is None:
+            return None
+        user_id = int(sub)
         return user_id
     except (ValueError, TypeError):
         return None
@@ -196,7 +199,7 @@ def is_token_expired(token: str) -> bool:
             return True
         
         exp_time = datetime.fromtimestamp(exp)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         return exp_time <= now
     except Exception:
@@ -206,7 +209,7 @@ def is_token_expired(token: str) -> bool:
 # ==================== Token Revocation (em memória para MVP) ====================
 
 # Em produção, usar Redis ou banco de dados
-_revoked_tokens = set()
+_revoked_tokens: Set[str] = set()
 
 
 def revoke_token(token: str) -> None:
