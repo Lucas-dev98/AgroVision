@@ -30,6 +30,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rate Limiting Middleware
+from app.middlewares import RateLimitMiddleware
+app.add_middleware(RateLimitMiddleware)
+
 
 # Incluir rotas de proxy
 from app.api.proxy import router as proxy_router
