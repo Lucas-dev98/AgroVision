@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements
-COPY services/animal-service/requirements.txt .
+COPY services/animal_service/requirements.txt .
 COPY shared/requirements.txt shared-requirements.txt
 
 # Instalar Python deps
@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir -r shared-requirements.txt && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copiar código
-COPY services/animal-service/ .
-COPY shared/ ../shared/
+COPY services/animal_service/ .
+COPY shared/ ./shared/
 
 # Expor porta
 EXPOSE 8001

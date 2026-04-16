@@ -3,13 +3,13 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Copiar requirements
-COPY requirements.txt .
+COPY services/pesagem_service/requirements.txt .
 
 # Instalar dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar código da aplicação
-COPY app/ ./app/
+COPY services/pesagem_service/app/ ./app/
 
 # Expor porta
 EXPOSE 8001
