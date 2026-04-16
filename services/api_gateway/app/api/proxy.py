@@ -1,5 +1,6 @@
 """API Gateway - Rotas de Proxy Reverso"""
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException
+from typing import Any, Dict
 from app.services import ProxyService
 
 router = APIRouter()
@@ -107,7 +108,7 @@ async def proxy_cotacoes(path: str, request: Request):
 # ==================== SERVICE STATUS ====================
 
 @router.get("/api/status/services", tags=["status"])
-async def services_status():
+async def services_status() -> Dict[str, Any]:
     """Retorna status de saúde de todos os serviços"""
     status_data = await ProxyService.health_check_all()
     

@@ -14,7 +14,7 @@ import logging
 import time
 import uuid
 import json
-from typing import Callable
+from typing import Callable, Optional, Any
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -33,7 +33,7 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         "/favicon.ico"
     ]
     
-    def __init__(self, app):
+    def __init__(self, app: Any) -> None:
         super().__init__(app)
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -139,7 +139,7 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         
         return "unknown"
     
-    def _get_destination_service(self, path: str) -> str:
+    def _get_destination_service(self, path: str) -> Optional[str]:
         """Determinar serviço de destino baseado no path
         
         Ex:
@@ -179,7 +179,7 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         status_code: int,
         response_time_ms: float,
         client_ip: str,
-        error: str = None
+        error: Optional[str] = None
     ) -> str:
         """Formatar log estruturado em JSON"""
         log_data = {
