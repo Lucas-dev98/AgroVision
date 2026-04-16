@@ -1,50 +1,44 @@
-"""
-Configuração de banco de dados PostgreSQL (SQLAlchemy)
-"""
+"""Configuração compartilhada de banco de dados para todos os serviços"""
 import os
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from typing import Generator
 
-# ==================== CONFIGURAÇÃO ====================
-
+# Determinar DATABASE_URL
+# Para produção: postgresql://user:password@host:port/database
+# Para testes/desenvolvimento: sqlite:///./agrovision.db ou sqlite:///:memory:
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://admin:admin123@localhost:5432/boi_db"
+    os.getenv("DATABASE_URL_DEV", "sqlite:///./agrovision.db")
 )
 
-# Pool de conexões
+# Determinar argumentos de conexão baseado no tipo de banco
+if "postgresql" in DATABASE_URL:
+    connect_args = {}
+    pool_pre_ping = True
+else:
+    # SQLite para testes/desenvolvimento
+    connect_args = {"check_same_thread": False}
+    pool_pre_ping = False
+
+# Criar engine com configurações apropriadas
 engine = create_engine(
     DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,  # Verifica conexão antes de usar
-    echo=os.getenv("DEBUG", "False") == "True"
+    connect_args=connect_args,
+    pool_pre_ping=pool_pre_ping,
+    echo=os.getenv("SQL_ECHO", "false").lower() == "true"
 )
 
-# Session factory
+# Criar SessionLocal factory
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# Base para ORM models
-Base = declarative_base()
 
-
-# ==================== HELPER FUNCTIONS ====================
-
-def get_db():
-    """
-    Dependency para FastAPI: retorna sessão do banco
-    
-    Usage:
-        @app.get("/animals")
-        def list_animals(db: Session = Depends(get_db)):
-            return db.query(Animal).all()
-    """
+def get_db() -> Generator:
+    """Dependency injection para SQLAlchemy session - pode ser usado em todos os serviços"""
     db = SessionLocal()
     try:
         yield db
@@ -53,23 +47,6 @@ def get_db():
 
 
 def init_db():
-    """Cria todas as tabelas"""
-    Base.metadata.create_all(bind=engine)
-
-
-def drop_db():
-    """
-    CUIDADO: Drop todas as tabelas
-    Use apenas para testes e desenvolvimento
-    """
-    Base.metadata.drop_all(bind=engine)
-
-
-# ==================== EVENTOS ====================
-
-@event.listens_for(engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    """
-    Configurações ao conectar (específico para engines diferentes)
-    """
+    """Inicializar banco de dados com as tabelas (usar Base.metadata de cada serviço)"""
+    # Esta função deve ser chamada com o Base correto de cada serviço
     pass
