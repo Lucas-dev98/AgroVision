@@ -36,12 +36,8 @@ def engine():
     from sqlalchemy import event
     event.listen(engine, "connect", disable_fk_enforcement)
     
-    # Importar Base DEPOIS de criar engine
-    from shared.database import Base
-    # Importar todos os modelos para registrar no Base
-    from services.animal_service.models import (
-        AnimalModel, WeighingRecordModel, VaccineModel, FeedingRecordModel
-    )
+    # Importar Base e criar tabelas
+    from app.models import Base
     
     # Criar todas as tabelas
     Base.metadata.create_all(bind=engine)
@@ -148,3 +144,26 @@ def created_animal(animal_repository, animal_create_dto):
 def created_animal_2(animal_repository, animal_create_dto_2):
     """Cria segundo animal no banco"""
     return animal_repository.create(animal_create_dto_2)
+
+
+# ==================== FIXTURES PARA API ====================
+
+@pytest.fixture
+def client(db):
+    """Cliente FastAPI para testes"""
+    from fastapi.testclient import TestClient
+    from app import app
+    
+    # Override dependency para usar DB de testes
+    from app.core.database import get_db
+    
+    def override_get_db():
+        yield db
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    client = TestClient(app)
+    yield client
+    
+    # Limpar overrides
+    app.dependency_overrides.clear()

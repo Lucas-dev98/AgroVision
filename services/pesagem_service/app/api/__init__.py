@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.services import PesagemService
 from app.schemas import PesagemCreate, PesagemUpdate, PesagemResponse, GanhoResponse
-from shared.database import get_db
+from app.core.database import get_db
 
 router = APIRouter(
     prefix="/api/v1/pesagens",

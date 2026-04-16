@@ -1,4 +1,4 @@
-#!/home/lucasbastos/boi/venv/bin/python3
+#!/home/lucasbastos/AgroVision/venv/bin/python
 import sys
 from uvicorn.main import main
 if __name__ == '__main__':

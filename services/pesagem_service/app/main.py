@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api import router
-from shared.database import Base, engine
+from app.models import Base
+from app.core.database import engine
 
 # Criar tabelas
 Base.metadata.create_all(bind=engine)
