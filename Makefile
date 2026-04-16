@@ -93,3 +93,83 @@ check: test-coverage
 
 dev: db-up run
 	@echo "🚀 Ambiente de desenvolvimento ativo!"
+
+# ==================== DOCKER COMPOSE ====================
+.PHONY: docker-up docker-down docker-build docker-logs docker-ps docker-test
+
+docker-build:
+@echo "🔨 Building Docker images..."
+docker-compose build
+
+docker-up:
+@echo "🚀 Starting all services with Docker Compose..."
+docker-compose up -d
+@echo "✅ Services started!"
+@echo ""
+@echo "📍 Endpoints:"
+@echo "  - Animal Service:  http://localhost:8000"
+@echo "  - Pesagem Service: http://localhost:8001"
+@echo "  - Cotacao Service: http://localhost:8002"
+@echo "  - PostgreSQL:      localhost:5432"
+@echo "  - Redis:           localhost:6379"
+@echo ""
+@sleep 2
+@make docker-health
+
+docker-down:
+@echo "⬇️  Stopping all services..."
+docker-compose down
+
+docker-logs:
+@echo "📜 Following logs from all services..."
+docker-compose logs -f
+
+docker-logs-service:
+@echo "📜 Logs for service: $(SERVICE)"
+docker-compose logs -f $(SERVICE)
+
+docker-ps:
+@echo "📋 Active containers:"
+docker-compose ps
+
+docker-health:
+@echo "🏥 Health check:"
+@docker-compose ps --services | while read service; do \
+echo -n "  $$service: "; \
+docker-compose ps $$service | tail -1 | grep -q "healthy" && echo "✅ healthy" || echo "⏳ starting"; \
+done
+
+docker-test:
+@echo "🧪 Running tests in Docker..."
+docker-compose exec animal-service pytest tests/ -v --tb=short
+docker-compose exec pesagem-service pytest tests/ -v --tb=short
+docker-compose exec cotacao-service pytest tests/ -v --tb=short
+
+docker-shell:
+@echo "🐚 Opening shell in $(SERVICE) container..."
+docker-compose exec $(SERVICE) /bin/bash
+
+docker-db-shell:
+@echo "🐘 Opening PostgreSQL shell..."
+docker-compose exec db psql -U agrovision -d agrovision
+
+docker-redis-shell:
+@echo "📍 Opening Redis shell..."
+docker-compose exec redis redis-cli
+
+docker-migrate:
+@echo "🔄 Running Alembic migrations..."
+docker-compose exec animal-service alembic upgrade head
+@echo "✅ Migrations completed!"
+
+docker-clean:
+@echo "🧹 Cleaning up Docker resources..."
+docker-compose down -v
+@echo "✅ Cleanup completed!"
+
+docker-rebuild:
+@echo "🔄 Rebuilding and restarting all services..."
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+@make docker-health
