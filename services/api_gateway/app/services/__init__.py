@@ -124,3 +124,9 @@ class ProxyService:
             "pesagem": await ProxyService.health_check_service("pesagem"),
             "cotacao": await ProxyService.health_check_service("cotacao"),
         }
+
+
+# Importar serviço de agregação
+from app.services.aggregation import AggregationService, aggregation_service
+
+__all__ = ["ProxyService", "AggregationService", "aggregation_service"]

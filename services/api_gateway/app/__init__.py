@@ -43,6 +43,10 @@ app.add_middleware(RateLimitMiddleware)
 from app.api.proxy import router as proxy_router
 app.include_router(proxy_router)
 
+# Incluir rotas de agregação
+from app.api.aggregation import router as aggregation_router
+app.include_router(aggregation_router)
+
 
 @app.get("/health", tags=["health"])
 async def health_check():
