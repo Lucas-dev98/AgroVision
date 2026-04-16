@@ -2,9 +2,9 @@
 Modelos SQLAlchemy para Animal Service
 """
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import (
-    Column, String, DateTime, Boolean, ForeignKey, Enum as SQLEnum, Text
+    Column, String, DateTime, Boolean, ForeignKey, Enum as SQLEnum, Text, Numeric
 )
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
@@ -45,8 +45,8 @@ class AnimalModel(Base):
     
     # Audit fields (sem FK para não complicar testes)
     # created_by será adicionado em produção com User model
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relacionamentos
     weighing_records = relationship("WeighingRecordModel", back_populates="animal", cascade="all, delete-orphan")
@@ -60,14 +60,14 @@ class WeighingRecordModel(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
     animal_id = Column(String(36), ForeignKey("animals.id"), nullable=False, index=True)
-    weight_kg = Column(type_=__import__('sqlalchemy').Numeric(8, 2), nullable=False)
-    weight_arrobas = Column(type_=__import__('sqlalchemy').Numeric(8, 2), nullable=False)
+    weight_kg = Column(Numeric(8, 2), nullable=False)
+    weight_arrobas = Column(Numeric(8, 2), nullable=False)
     recorded_at = Column(DateTime, nullable=False, index=True)
     # recorded_by será adicionado em produção
     notes = Column(Text, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relacionamentos
     animal = relationship("AnimalModel", back_populates="weighing_records")
@@ -87,8 +87,8 @@ class VaccineModel(Base):
     notes = Column(Text, nullable=True)
     
     # created_by será adicionado em produção
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relacionamentos
     animal = relationship("AnimalModel", back_populates="vaccines")
@@ -101,13 +101,13 @@ class FeedingRecordModel(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
     animal_id = Column(String(36), ForeignKey("animals.id"), nullable=False, index=True)
     feed_type = Column(String(100), nullable=False)
-    quantity_kg = Column(type_=__import__('sqlalchemy').Numeric(8, 2), nullable=False)
+    quantity_kg = Column(Numeric(8, 2), nullable=False)
     fed_at = Column(DateTime, nullable=False)
     # recorded_by será adicionado em produção
     notes = Column(Text, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relacionamentos
     animal = relationship("AnimalModel", back_populates="feeding_records")

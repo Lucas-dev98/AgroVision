@@ -3,7 +3,7 @@
 Endpoints para agregação de dados de múltiplos serviços
 """
 from fastapi import APIRouter, HTTPException, Query, Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import logging
 
 from app.services.aggregation import aggregation_service
@@ -32,7 +32,7 @@ async def get_animal_dashboard(
         None,
         description="Data final para filtro (YYYY-MM-DD)"
     ),
-):
+) -> Dict[str, Any]:
     """
     Obter dashboard consolidado de um animal
     
@@ -72,8 +72,8 @@ async def get_animal_dashboard(
                     detail=f"Campos inválidos: {', '.join(invalid_fields)}"
                 )
         
-        # Preparar filtros
-        filters = {}
+        # Preparar filtros com type hint explícito
+        filters: Dict[str, Any] = {}
         if start_date:
             filters["start_date"] = start_date
         if end_date:
@@ -120,7 +120,7 @@ async def get_animals_dashboard(
         None,
         description="Campos a incluir (separados por vírgula): animal,pesagens,cotacoes"
     ),
-):
+) -> List[Dict[str, Any]]:
     """
     Obter dashboards consolidados de múltiplos animais
     
@@ -158,13 +158,14 @@ async def get_animals_dashboard(
                 detail="Pelo menos um ID de animal deve ser fornecido"
             )
         
-        # Parse include fields
-        include_fields = None
+        # Parse include fields (preparado para uso futuro)
         if include:
-            include_fields = [f.strip() for f in include.split(",")]
+            _ = [f.strip() for f in include.split(",")]
         
         # Buscar dashboards agregados
-        dashboards = await aggregation_service.get_animals_dashboard(animal_ids)
+        dashboards: List[Dict[str, Any]] = await aggregation_service.get_animals_dashboard(
+            animal_ids
+        )
         
         return dashboards
         
@@ -184,7 +185,7 @@ async def get_animals_dashboard(
     description="Verifica disponibilidade dos serviços para agregação",
     tags=["Aggregation"]
 )
-async def aggregation_health():
+async def aggregation_health() -> Dict[str, Any]:
     """
     Verificar saúde dos serviços agregados
     
@@ -217,7 +218,7 @@ async def aggregation_health():
                 "cotacao": True
             },
             "cache_status": {
-                "entries": len(aggregation_service._cache),
+                "entries": aggregation_service.get_cache_size(),
                 "capacity": "unlimited"
             }
         }
@@ -235,7 +236,7 @@ async def aggregation_health():
     description="Remove todas as entradas do cache de agregação",
     tags=["Aggregation"]
 )
-async def clear_aggregation_cache():
+async def clear_aggregation_cache() -> Dict[str, str]:
     """
     Limpar cache de agregação
     

@@ -6,7 +6,7 @@ import asyncio
 import logging
 import httpx
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger("agrovision.aggregation")
 
@@ -14,7 +14,7 @@ logger = logging.getLogger("agrovision.aggregation")
 class AggregationService:
     """Serviço para agregação de dados de múltiplos backends"""
     
-    def __init__(self, base_urls: Dict[str, str] = None):
+    def __init__(self, base_urls: Optional[Dict[str, str]] = None) -> None:
         """
         Inicializar serviço de agregação
         
@@ -33,7 +33,7 @@ class AggregationService:
         }
         
         self.timeout = 5.0  # 5 segundos de timeout por serviço
-        self._cache = {}  # Cache simples em memória
+        self._cache: Dict[str, Any] = {}  # Cache simples em memória
     
     async def get_animal_dashboard(
         self,
@@ -81,9 +81,9 @@ class AggregationService:
             )
             
             # Agregar resultados
-            aggregated = {
+            aggregated: Dict[str, Any] = {
                 "animal_id": animal_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "status": "success"
             }
             
@@ -255,7 +255,7 @@ class AggregationService:
         """
         self._cache[key] = {
             "value": value,
-            "expires_at": datetime.utcnow().timestamp() + ttl
+            "expires_at": datetime.now(timezone.utc).timestamp() + ttl
         }
     
     def cache_clear(self) -> None:
@@ -268,11 +268,15 @@ class AggregationService:
             return False
         
         cache_entry = self._cache[key]
-        if datetime.utcnow().timestamp() > cache_entry["expires_at"]:
+        if datetime.now(timezone.utc).timestamp() > cache_entry["expires_at"]:
             del self._cache[key]
             return False
         
         return True
+    
+    def get_cache_size(self) -> int:
+        """Obter quantidade de entradas no cache"""
+        return len(self._cache)
 
 
 # Instância global

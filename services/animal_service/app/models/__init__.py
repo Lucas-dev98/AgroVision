@@ -3,7 +3,7 @@ SQLAlchemy Models
 """
 from sqlalchemy import Column, Integer, String, Date, DateTime, Enum
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum as PythonEnum
 
 from app.schemas import AnimalStatus
@@ -24,8 +24,8 @@ class Animal(Base):
     status = Column(Enum(AnimalStatus), default=AnimalStatus.ATIVO, nullable=False, server_default=AnimalStatus.ATIVO)
     peso_inicial = Column(Integer, nullable=True)
     data_entrada = Column(Date, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     def __init__(self, **kwargs):
         """Inicializa Animal com status padrão"""

@@ -7,7 +7,7 @@ Endpoints:
 """
 from fastapi import APIRouter, HTTPException, Depends, status, Header
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict
 import logging
 
 from app.core.security import (
@@ -75,7 +75,7 @@ class LoginResponse(BaseModel):
     description="Gera tokens de acesso e refresh",
     tags=["Authentication"]
 )
-async def login(request: LoginRequest):
+async def login(request: LoginRequest) -> LoginResponse:
     """
     Endpoint de login - autenticar com username e password
     
@@ -162,7 +162,7 @@ async def login(request: LoginRequest):
     description="Gera novo access token usando refresh token",
     tags=["Authentication"]
 )
-async def refresh_access_token(request: RefreshRequest):
+async def refresh_access_token(request: RefreshRequest) -> TokenResponse:
     """
     Endpoint de refresh - renovar access token
     
@@ -237,7 +237,7 @@ async def refresh_access_token(request: RefreshRequest):
     description="Revoga o token de acesso",
     tags=["Authentication"]
 )
-async def logout(authorization: Optional[str] = Header(None)):
+async def logout(authorization: Optional[str] = Header(None)) -> Dict[str, str]:
     """
     Endpoint de logout - revogar token
     

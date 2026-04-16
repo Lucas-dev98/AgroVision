@@ -1,7 +1,7 @@
 """Rate Limiting Middleware"""
 import redis
 import time
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Middleware para rate limiting usando Redis"""
     
-    def __init__(self, app, redis_url: str = "redis://redis:6379"):
+    def __init__(self, app: Any, redis_url: str = "redis://redis:6379") -> None:
         super().__init__(app)
         self.redis_url = redis_url
         try:
@@ -26,7 +26,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             logger.warning(f"⚠️ Redis not available: {e}. Rate limiting desabilitado")
             self.redis_client = None
     
-    async def dispatch(self, request: Request, call_next: Callable):
+    async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
         """Middleware dispatch"""
         # Se rate limiting desabilitado, passar adiante
         if not settings.rate_limit_enabled or not self.redis_client:
