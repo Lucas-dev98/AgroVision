@@ -88,6 +88,10 @@ from app.middlewares import RateLimitMiddleware
 app.add_middleware(RateLimitMiddleware)
 
 
+# Incluir rotas de autenticação
+from app.api.auth import router as auth_router
+app.include_router(auth_router)
+
 # Incluir rotas de proxy
 from app.api.proxy import router as proxy_router
 app.include_router(proxy_router)
