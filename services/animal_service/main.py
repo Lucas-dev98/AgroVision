@@ -5,10 +5,10 @@ import os
 import uvicorn
 
 if __name__ == "__main__":
-    port = int(os.getenv("ANIMAL_SERVICE_PORT", 8001))
+    port = int(os.getenv("ANIMAL_SERVICE_PORT", 8000))
     
     uvicorn.run(
-        "app:app",
+        "app.main:app",
         host="0.0.0.0",
         port=port,
         reload=os.getenv("ENVIRONMENT", "development") == "development",
