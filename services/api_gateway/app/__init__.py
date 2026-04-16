@@ -1,0 +1,56 @@
+"""FastAPI Application - API Gateway"""
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+# Health check endpoint
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager"""
+    print("🚀 API Gateway iniciando...")
+    yield
+    print("🛑 API Gateway encerrando...")
+
+
+app = FastAPI(
+    title="AgroVision API Gateway",
+    description="Central de roteamento e autenticação para microserviços",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health", tags=["health"])
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "api-gateway",
+        "version": "1.0.0"
+    }
+
+
+@app.get("/", tags=["root"])
+async def root():
+    """Root endpoint"""
+    return {
+        "name": "AgroVision API Gateway",
+        "version": "1.0.0",
+        "documentation": "/docs",
+        "services": {
+            "animal": "http://localhost:8000/docs",
+            "pesagem": "http://localhost:8001/docs",
+            "cotacao": "http://localhost:8002/docs"
+        }
+    }
