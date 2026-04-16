@@ -122,6 +122,35 @@ services:
     restart: unless-stopped
 
 
+  # API Gateway - Central Authentication & Routing (porta 8080)
+  api-gateway:
+    build:
+      context: ./services/api_gateway
+      dockerfile: Dockerfile
+    container_name: agrovision-api-gateway
+    environment:
+      ANIMAL_SERVICE_URL: http://animal-service:8000
+      PESAGEM_SERVICE_URL: http://pesagem-service:8001
+      COTACAO_SERVICE_URL: http://cotacao-service:8002
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/3
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    depends_on:
+      - animal-service
+      - pesagem-service
+      - cotacao-service
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
 # ==================== VOLUMES ====================
 volumes:
   db_data:
