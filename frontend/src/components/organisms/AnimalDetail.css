@@ -1,0 +1,335 @@
+/* ========================================
+   AnimalDetail Organism Styles
+   ======================================== */
+
+.animal-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+/* ========================================
+   Breadcrumb
+   ======================================== */
+
+.animal-detail__breadcrumb {
+  display: flex;
+}
+
+/* ========================================
+   Header with Title & Actions
+   ======================================== */
+
+.animal-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--border-light);
+}
+
+.animal-detail__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary);
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ========================================
+   Actions
+   ======================================== */
+
+.animal-detail__actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.animal-detail__button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--primary);
+  color: var(--card);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.animal-detail__button--edit {
+  background-color: var(--secondary);
+
+  &:hover {
+    background-color: #55AA44;
+  }
+}
+
+.animal-detail__button--delete {
+  background-color: var(--error);
+
+  &:hover {
+    background-color: #B71C1C;
+  }
+}
+
+.animal-detail__button--save {
+  background-color: var(--success);
+
+  &:hover {
+    background-color: #388E3C;
+  }
+}
+
+.animal-detail__button--cancel {
+  background-color: var(--border-light);
+  color: var(--text-primary);
+
+  &:hover {
+    background-color: var(--text-secondary);
+    color: var(--card);
+  }
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+
+.animal-detail__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-4xl) var(--spacing-lg);
+  min-height: 300px;
+}
+
+.animal-detail__spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   Error State
+   ======================================== */
+
+.animal-detail__error {
+  padding: var(--spacing-lg);
+  background-color: #FFEBEE;
+  border-left: 4px solid var(--error);
+  border-radius: var(--radius-md);
+  color: #B71C1C;
+
+  h2 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+  }
+
+  p {
+    margin: 0;
+    font-weight: var(--font-weight-medium);
+  }
+}
+
+/* ========================================
+   Content Layout
+   ======================================== */
+
+.animal-detail__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+/* ========================================
+   Card
+   ======================================== */
+
+.animal-detail__card {
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ========================================
+   Form
+   ======================================== */
+
+.animal-detail__form {
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .animal-detail__content {
+    grid-template-columns: 1fr;
+  }
+
+  .animal-detail__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .animal-detail__title {
+    width: 100%;
+  }
+
+  .animal-detail__actions {
+    width: 100%;
+  }
+
+  .animal-detail__button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .animal-detail {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .animal-detail__header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: var(--spacing-md);
+  }
+
+  .animal-detail__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .animal-detail__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .animal-detail__button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .animal-detail__card,
+  .animal-detail__form {
+    padding: var(--spacing-md);
+  }
+
+  .animal-detail__loading {
+    padding: var(--spacing-2xl) var(--spacing-md);
+  }
+
+  .animal-detail__error {
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .animal-detail {
+    padding: var(--spacing-sm);
+  }
+
+  .animal-detail__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .animal-detail__button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+
+  .animal-detail__button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .animal-detail__card,
+  .animal-detail__form {
+    padding: var(--spacing-md);
+  }
+
+  .animal-detail__loading p {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .animal-detail__spinner {
+    animation: none;
+    border-top-color: transparent;
+  }
+
+  .animal-detail__button {
+    transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .animal-detail__error {
+    background-color: #B71C1C;
+    color: #FFCDD2;
+  }
+
+  .animal-detail__card,
+  .animal-detail__form {
+    background-color: #2B2B2B;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .animal-detail__header {
+    border-bottom-color: #444;
+  }
+}
