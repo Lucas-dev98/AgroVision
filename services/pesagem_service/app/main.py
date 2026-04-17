@@ -3,14 +3,20 @@ FastAPI Application Factory
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 
 from app.core.config import settings
+from app.core.init_db import init_db
 from app.api import router
-from app.models import Base
-from app.core.database import engine
 
-# Criar tabelas
-Base.metadata.create_all(bind=engine)
+logger = logging.getLogger(__name__)
+
+# Inicializar banco de dados com retry
+try:
+    init_db(max_retries=5, retry_interval=2)
+except Exception as e:
+    logger.error(f"Falha ao inicializar banco de dados: {e}")
+    raise
 
 # Criar app
 app = FastAPI(
