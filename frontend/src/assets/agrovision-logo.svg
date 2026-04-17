@@ -1,26 +1,63 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Cabeça de touro -->
+  <defs>
+    <!-- Padrão de textura para os chifres -->
+    <pattern id="hornTexture" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#FFFFFF" opacity="0.1"/>
+      <circle cx="8" cy="7" r="1" fill="#FFFFFF" opacity="0.1"/>
+    </pattern>
+    
+    <!-- Gradiente para profundidade -->
+    <linearGradient id="hornGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2E7D32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1B5E20;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="headGradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1B5E20;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Cabeça de touro com textura -->
   <g>
-    <!-- Chifre esquerdo -->
-    <path d="M 50 80 Q 30 50 35 20" stroke="#1B5E20" stroke-width="8" fill="none" stroke-linecap="round"/>
-    <!-- Chifre direito -->
-    <path d="M 150 80 Q 170 50 165 20" stroke="#1B5E20" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <!-- Chifre esquerdo - base -->
+    <path d="M 50 85 Q 25 55 20 15 Q 22 50 25 85" fill="url(#hornGradient)" stroke="#0D3818" stroke-width="1" opacity="0.9"/>
+    <ellipse cx="45" cy="85" rx="12" ry="8" fill="#2E7D32"/>
     
-    <!-- Detalhe dos chifres em verde claro -->
-    <path d="M 48 82 Q 28 52 33 22" stroke="#66BB6A" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
-    <path d="M 152 82 Q 172 52 167 22" stroke="#66BB6A" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <!-- Chifre direito - base -->
+    <path d="M 150 85 Q 175 55 180 15 Q 178 50 175 85" fill="url(#hornGradient)" stroke="#0D3818" stroke-width="1" opacity="0.9"/>
+    <ellipse cx="155" cy="85" rx="12" ry="8" fill="#2E7D32"/>
     
-    <!-- Cabeça principal -->
-    <ellipse cx="100" cy="120" rx="45" ry="50" fill="#2E7D32"/>
+    <!-- Detalhe de luz nos chifres (esquerdo) -->
+    <path d="M 48 80 Q 30 60 28 25" stroke="#66BB6A" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 52 82 Q 35 65 33 30" stroke="#81C784" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
     
-    <!-- Queixo -->
-    <ellipse cx="100" cy="155" rx="30" ry="25" fill="#1B5E20"/>
+    <!-- Detalhe de luz nos chifres (direito) -->
+    <path d="M 152 80 Q 170 60 172 25" stroke="#66BB6A" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 148 82 Q 165 65 167 30" stroke="#81C784" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
     
-    <!-- Detalhe central (V) em verde claro -->
-    <path d="M 85 100 L 100 140 L 115 100" stroke="#66BB6A" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Cabeça principal - oval -->
+    <ellipse cx="100" cy="120" rx="48" ry="52" fill="url(#headGradient)" stroke="#0D3818" stroke-width="1.5"/>
+    
+    <!-- Queixo/Barbela -->
+    <ellipse cx="100" cy="160" rx="32" ry="28" fill="#1B5E20" stroke="#0D3818" stroke-width="1"/>
+    
+    <!-- Detalhe central em V (luz) -->
+    <path d="M 82 95 Q 100 135 118 95" stroke="#66BB6A" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <path d="M 84 98 Q 100 132 116 98" stroke="#81C784" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+    
+    <!-- Sombra central para profundidade -->
+    <ellipse cx="100" cy="125" rx="30" ry="35" fill="#0D3818" opacity="0.2"/>
     
     <!-- Olhos -->
-    <circle cx="85" cy="110" r="4" fill="#81C784"/>
-    <circle cx="115" cy="110" r="4" fill="#81C784"/>
+    <circle cx="82" cy="105" r="5" fill="#81C784"/>
+    <circle cx="118" cy="105" r="5" fill="#81C784"/>
+    <circle cx="83" cy="104" r="2" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="119" cy="104" r="2" fill="#FFFFFF" opacity="0.6"/>
+    
+    <!-- Detalhes de textura na cabeça -->
+    <circle cx="75" cy="130" r="1.5" fill="#66BB6A" opacity="0.4"/>
+    <circle cx="125" cy="135" r="1.5" fill="#66BB6A" opacity="0.4"/>
+    <circle cx="100" cy="145" r="1.5" fill="#66BB6A" opacity="0.4"/>
   </g>
 </svg>
