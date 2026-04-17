@@ -1,4 +1,5 @@
 import React from 'react'
+import './Input.css'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -20,30 +21,26 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
  */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, helperText, fullWidth = false, className = '', ...props }, ref) => {
-    const baseStyles = 'border rounded px-3 py-2 text-base transition-colors duration-200'
-    const borderStyles = error
-      ? 'border-red-500 focus:border-red-600 focus:ring-red-200'
-      : 'border-gray-300 focus:border-blue-600 focus:ring-blue-200'
-    const focusStyles = 'focus:outline-none focus:ring-2'
-    const widthStyles = fullWidth ? 'w-full' : ''
+    const errorClass = error ? 'input--error' : ''
+    const finalClassName = `input ${errorClass} ${className}`.trim()
 
     return (
-      <div className={fullWidth ? 'w-full' : ''}>
+      <div className={fullWidth ? 'input-wrapper' : ''}>
         {label && (
-          <label className="block mb-2 font-semibold text-gray-700">
+          <label className="input-label">
             {label}
           </label>
         )}
         <input
           ref={ref}
-          className={`${baseStyles} ${borderStyles} ${focusStyles} ${widthStyles} ${className}`}
+          className={finalClassName}
           {...props}
         />
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
+          <p className="input-message input-error">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+          <p className="input-message input-helper">{helperText}</p>
         )}
       </div>
     )

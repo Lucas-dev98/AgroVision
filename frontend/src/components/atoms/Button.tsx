@@ -1,9 +1,11 @@
 import React from 'react'
+import './Button.css'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
+  fullWidth?: boolean
   children: React.ReactNode
 }
 
@@ -17,22 +19,21 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
  * </Button>
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading = false, children, className = '', ...props }, ref) => {
-    const baseStyles = 'font-semibold rounded transition-colors duration-200'
+  ({ 
+    variant = 'primary', 
+    size = 'md', 
+    loading = false,
+    fullWidth = false,
+    children, 
+    className = '', 
+    ...props 
+  }, ref) => {
+    const variantClass = `button--${variant}`
+    const sizeClass = `button--${size}`
+    const fullWidthClass = fullWidth ? 'button--full' : ''
+    const loadingClass = loading ? 'button--loading' : ''
     
-    const variantStyles = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400',
-      secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-400',
-      danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400',
-    }
-
-    const sizeStyles = {
-      sm: 'px-3 py-1 text-sm',
-      md: 'px-4 py-2 text-base',
-      lg: 'px-6 py-3 text-lg',
-    }
-
-    const finalClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`
+    const finalClassName = `button ${variantClass} ${sizeClass} ${fullWidthClass} ${loadingClass} ${className}`.trim()
 
     return (
       <button
@@ -41,7 +42,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={loading || props.disabled}
         {...props}
       >
-        {loading ? '...' : children}
+        {children}
       </button>
     )
   }

@@ -1,4 +1,5 @@
 import React from 'react'
+import './Card.css'
 
 interface CardProps {
   title?: string
@@ -17,22 +18,25 @@ interface CardProps {
  * </Card>
  */
 const Card: React.FC<CardProps> = ({ title, children, className = '', onClick }) => {
+  const clickableClass = onClick ? 'card--clickable' : ''
+  const finalClassName = `card ${clickableClass} ${className}`.trim()
+
   return (
     <div
-      className={`bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200 ${
-        onClick ? 'cursor-pointer' : ''
-      } ${className}`}
+      className={finalClassName}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyPress={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
     >
       {title && (
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">
+        <h3 className="card__title">
           {title}
         </h3>
       )}
-      {children}
+      <div className="card__content">
+        {children}
+      </div>
     </div>
   )
 }

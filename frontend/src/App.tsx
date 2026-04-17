@@ -5,6 +5,7 @@ import Card from '@components/atoms/Card'
 import apiService from '@services/api'
 import logoSvg from '@/assets/agrovision-logo.svg'
 import './styles/global.css'
+import './styles/app-layout.css'
 import './styles/App.css'
 
 function App() {
@@ -16,78 +17,66 @@ function App() {
   }, [])
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
+    <div className="app-container">
+      <header>
+        <div className="header__top">
           <img 
             src={logoSvg} 
             alt="AgroVision Logo" 
-            width="60" 
-            height="60"
-            className="w-16 h-16"
+            className="header__logo"
           />
-          <h1 className="text-4xl font-bold text-gray-800">
-            AgroVision
-          </h1>
+          <h1>AgroVision</h1>
         </div>
-        <p className="text-lg text-gray-600">
-          Tecnologia inteligente para o campo
-        </p>
+        <p>Tecnologia inteligente para o campo</p>
         
-        <div className="mt-4">
-          {isHealthy ? (
-            <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded">
-              ✅ API Conectada
-            </span>
-          ) : (
-            <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded">
-              ❌ API Desconectada
-            </span>
-          )}
-        </div>
+        {isHealthy !== null && (
+          <div className={`api-status ${isHealthy ? 'api-status--connected' : 'api-status--disconnected'}`}>
+            {isHealthy ? '✅ API Conectada' : '❌ API Desconectada'}
+          </div>
+        )}
       </header>
 
       <main>
-        <section className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Animais
-            </h2>
+        <section>
+          <div className="section-header">
+            <h2>Animais</h2>
             <Button variant="primary" size="md">
               Adicionar Animal
             </Button>
           </div>
 
           {loading && (
-            <div className="text-center py-8">
-              <p className="text-gray-600">Carregando animais...</p>
+            <div className="loading">
+              <p>Carregando animais...</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="error-message">
               Erro: {error}
             </div>
           )}
 
           {!loading && animals.length === 0 && !error && (
-            <div className="text-center py-8">
-              <p className="text-gray-600">Nenhum animal encontrado</p>
+            <div className="empty-state">
+              <p>Nenhum animal encontrado</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="animals-grid">
             {animals.map((animal) => (
               <Card 
                 key={animal.id}
                 title={animal.nome}
               >
-                <div className="space-y-2 text-sm">
-                  <p><strong>Raça:</strong> {animal.raca}</p>
-                  <p><strong>RFID:</strong> {animal.rfid}</p>
-                  <p><strong>Status:</strong> {animal.status}</p>
-                  <p><strong>Peso Inicial:</strong> {animal.peso_inicial} kg</p>
-                  <div className="pt-4 flex gap-2">
+                <div className="animal-card-content">
+                  <div className="animal-info">
+                    <div><strong>Raça:</strong> {animal.raca}</div>
+                    <div><strong>RFID:</strong> {animal.rfid}</div>
+                    <div><strong>Status:</strong> {animal.status}</div>
+                    <div><strong>Peso Inicial:</strong> {animal.peso_inicial} kg</div>
+                  </div>
+                  <div className="animal-actions">
                     <Button variant="secondary" size="sm" fullWidth>
                       Detalhes
                     </Button>

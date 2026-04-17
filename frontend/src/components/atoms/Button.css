@@ -1,0 +1,133 @@
+/* Button Component Styles */
+
+.button {
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+/* Variants */
+.button--primary {
+  background-color: var(--primary);
+  color: #FFFFFF;
+}
+
+.button--primary:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.button--primary:active:not(:disabled) {
+  background-color: #0d3818;
+  transform: scale(0.98);
+}
+
+.button--primary:disabled {
+  background-color: var(--text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button--secondary {
+  background-color: var(--secondary-light);
+  color: var(--primary-dark);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background-color: var(--secondary);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-md);
+}
+
+.button--secondary:active:not(:disabled) {
+  background-color: var(--primary);
+  transform: scale(0.98);
+}
+
+.button--secondary:disabled {
+  background-color: var(--text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button--danger {
+  background-color: var(--error);
+  color: #FFFFFF;
+}
+
+.button--danger:hover:not(:disabled) {
+  background-color: #c41c3b;
+  box-shadow: var(--shadow-md);
+}
+
+.button--danger:active:not(:disabled) {
+  background-color: #a71530;
+  transform: scale(0.98);
+}
+
+.button--danger:disabled {
+  background-color: var(--text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.button--sm {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.button--md {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-md);
+}
+
+.button--lg {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-lg);
+}
+
+/* Full width */
+.button--full {
+  width: 100%;
+}
+
+/* Loading state */
+.button--loading {
+  position: relative;
+  color: transparent;
+}
+
+.button--loading::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  top: 50%;
+  left: 50%;
+  margin-left: -7px;
+  margin-top: -7px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #FFFFFF;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Focus state para acessibilidade */
+.button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
