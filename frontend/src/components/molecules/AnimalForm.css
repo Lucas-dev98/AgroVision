@@ -1,0 +1,327 @@
+/* ========================================
+   AnimalForm Component Styles
+   ======================================== */
+
+.animal-form {
+  width: 100%;
+  background-color: var(--card);
+}
+
+.animal-form__container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.animal-form__header {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 2px solid var(--primary);
+}
+
+.animal-form__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary);
+  margin: 0;
+}
+
+/* ========================================
+   Body
+   ======================================== */
+
+.animal-form__body {
+  flex: 1;
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+}
+
+/* ========================================
+   Form Groups
+   ======================================== */
+
+.animal-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.animal-form__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.animal-form__required {
+  color: var(--error);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ========================================
+   Inputs and Selects
+   ======================================== */
+
+.animal-form__input,
+.animal-form__select {
+  padding: var(--spacing-md) var(--spacing-md);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  background-color: var(--card);
+  color: var(--text-primary);
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+  }
+
+  &:disabled {
+    background-color: #F5F5F5;
+    color: var(--text-secondary);
+    cursor: not-allowed;
+  }
+}
+
+.animal-form__input--error {
+  border-color: var(--error);
+  background-color: rgba(211, 47, 47, 0.05);
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+  }
+}
+
+.animal-form__select {
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary);
+  }
+
+  option {
+    background-color: var(--card);
+    color: var(--text-primary);
+  }
+}
+
+/* ========================================
+   Error Messages
+   ======================================== */
+
+.animal-form__error {
+  font-size: var(--font-size-xs);
+  color: var(--error);
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.animal-form__error::before {
+  content: '⚠️';
+}
+
+/* ========================================
+   Footer with Actions
+   ======================================== */
+
+.animal-form__footer {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-top: 1px solid var(--border-light);
+  background-color: #FAFAFA;
+}
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+.animal-form__button {
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:focus {
+    outline: 2px solid;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.animal-form__button--submit {
+  background-color: var(--primary);
+  color: var(--card);
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:focus {
+    outline-color: var(--primary);
+  }
+}
+
+.animal-form__button--cancel {
+  background-color: var(--border-light);
+  color: var(--text-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--text-secondary);
+    color: var(--card);
+  }
+
+  &:focus {
+    outline-color: var(--text-secondary);
+  }
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .animal-form__header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .animal-form__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .animal-form__body {
+    padding: var(--spacing-lg);
+  }
+
+  .animal-form__group {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .animal-form__footer {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .animal-form__button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .animal-form__header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .animal-form__title {
+    font-size: var(--font-size-md);
+  }
+
+  .animal-form__body {
+    padding: var(--spacing-md);
+  }
+
+  .animal-form__input,
+  .animal-form__select {
+    font-size: var(--font-size-base);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .animal-form__label {
+    font-size: var(--font-size-xs);
+  }
+
+  .animal-form__button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .animal-form__footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .animal-form__input,
+  .animal-form__select,
+  .animal-form__button {
+    transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .animal-form {
+    background-color: #2B2B2B;
+  }
+
+  .animal-form__input,
+  .animal-form__select {
+    background-color: #3A3A3A;
+    color: #E0E0E0;
+    border-color: #555;
+  }
+
+  .animal-form__footer {
+    background-color: #1F1F1F;
+    border-top-color: #444;
+  }
+
+  .animal-form__button--cancel {
+    background-color: #444;
+    color: #E0E0E0;
+
+    &:hover:not(:disabled) {
+      background-color: #555;
+    }
+  }
+}
+
+/* ========================================
+   Layout Grid (2 columns on larger screens)
+   ======================================== */
+
+@media (min-width: 769px) {
+  .animal-form__body {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    grid-auto-flow: row;
+  }
+
+  .animal-form__group:nth-child(6n + 5) {
+    grid-column: 1 / -1;
+  }
+
+  .animal-form__body > .animal-form__group:last-child {
+    grid-column: 1 / -1;
+  }
+}
