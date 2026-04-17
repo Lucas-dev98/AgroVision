@@ -2,7 +2,7 @@ from typing import List, Optional, Dict
 from datetime import datetime
 from bson import ObjectId
 from motor.motor_asyncio import AsyncDatabase
-from app.models import TrackingDocument, AnimalReIdDocument, AnimalHealthDocument
+from app.models_db import TrackingDocument, AnimalReIdDocument, AnimalHealthDocument
 from app.schemas import AnimalTrack, BehaviorClassification, AnomalyDetection
 
 

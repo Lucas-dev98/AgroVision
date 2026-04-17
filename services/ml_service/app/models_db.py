@@ -1,24 +1,35 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
+from pydantic import BaseModel, Field, field_validator, GetJsonSchemaHandler
+from typing import Optional, List, Dict, Annotated
 from datetime import datetime
 from bson import ObjectId
+from pydantic_core import core_schema
 
 
-class PyObjectId(ObjectId):
-    """Custom ObjectId for Pydantic"""
+class PyObjectId(str):
+    """Custom ObjectId for Pydantic v2"""
+    
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
+    def __get_pydantic_core_schema__(cls, _source_type, _handler):
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            core_schema.str_schema(),
+            serialization=core_schema.plain_serializer_function_ser_schema(str),
+        )
+    
+    @classmethod
+    def __get_pydantic_json_schema__(cls, _core_schema, handler):
+        json_schema = handler(_core_schema)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema.update(type="string")
+        return json_schema
+    
     @classmethod
     def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+        if isinstance(v, ObjectId):
+            return str(v)
+        if isinstance(v, str) and ObjectId.is_valid(v):
+            return v
+        raise ValueError(f"Invalid ObjectId: {v}")
 
 
 class TrackingDocument(BaseModel):
@@ -34,9 +45,10 @@ class TrackingDocument(BaseModel):
     model_version: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+    }
 
 
 class AnimalReIdDocument(BaseModel):
@@ -51,9 +63,10 @@ class AnimalReIdDocument(BaseModel):
     pattern_descriptor: Optional[List[float]] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+    }
 
 
 class AnimalHealthDocument(BaseModel):
@@ -68,9 +81,10 @@ class AnimalHealthDocument(BaseModel):
     recommendations: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+    }
 
 
 class BehaviorPatternDocument(BaseModel):
@@ -84,6 +98,7 @@ class BehaviorPatternDocument(BaseModel):
     first_observed: datetime
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+    }

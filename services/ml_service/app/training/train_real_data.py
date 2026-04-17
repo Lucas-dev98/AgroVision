@@ -33,13 +33,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from motor.motor_asyncio import AsyncIOMotorClient
-
 # Imports FASE 2 models
-from app.models.behavior import CNNBehaviorClassifier
-from app.models.anomaly import AnomalyDetectionAutoencoder
-from app.models.reid import ResNetReID
-from app.models.temporal import LSTMTemporalAnalyzer
+from app.models import (
+    CNNBehaviorClassifier,
+    AnomalyDetectionAutoencoder,
+    ResNetReID,
+    LSTMTemporalAnalyzer,
+)
 
 # Imports FASE 3
 from app.training.incremental_trainer import IncrementalTrainer
@@ -261,6 +261,8 @@ async def train_with_real_data(args):
     # Inicializar gerenciadores de dados se usar dados reais
     if args.use_real_data:
         try:
+            from motor.motor_asyncio import AsyncIOMotorClient
+            
             db_url = "mongodb://localhost:27017"
             client = AsyncIOMotorClient(db_url)
             db = client["agrovision_ml"]
