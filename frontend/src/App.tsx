@@ -3,6 +3,7 @@ import { useAnimals } from '@hooks/useAnimals'
 import Button from '@components/atoms/Button'
 import Card from '@components/atoms/Card'
 import apiService from '@services/api'
+import logoSvg from '@/assets/agrovision-logo.svg'
 import './styles/global.css'
 import './styles/App.css'
 
@@ -17,11 +18,20 @@ function App() {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          🐄 AgroVision
-        </h1>
+        <div className="flex items-center gap-4 mb-4">
+          <img 
+            src={logoSvg} 
+            alt="AgroVision Logo" 
+            width="60" 
+            height="60"
+            className="w-16 h-16"
+          />
+          <h1 className="text-4xl font-bold text-gray-800">
+            AgroVision
+          </h1>
+        </div>
         <p className="text-lg text-gray-600">
-          Sistema de Gestão de Rebanho
+          Tecnologia inteligente para o campo
         </p>
         
         <div className="mt-4">

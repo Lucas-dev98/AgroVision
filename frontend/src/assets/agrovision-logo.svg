@@ -1,0 +1,26 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cabeça de touro -->
+  <g>
+    <!-- Chifre esquerdo -->
+    <path d="M 50 80 Q 30 50 35 20" stroke="#1B5E20" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <!-- Chifre direito -->
+    <path d="M 150 80 Q 170 50 165 20" stroke="#1B5E20" stroke-width="8" fill="none" stroke-linecap="round"/>
+    
+    <!-- Detalhe dos chifres em verde claro -->
+    <path d="M 48 82 Q 28 52 33 22" stroke="#66BB6A" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 152 82 Q 172 52 167 22" stroke="#66BB6A" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+    
+    <!-- Cabeça principal -->
+    <ellipse cx="100" cy="120" rx="45" ry="50" fill="#2E7D32"/>
+    
+    <!-- Queixo -->
+    <ellipse cx="100" cy="155" rx="30" ry="25" fill="#1B5E20"/>
+    
+    <!-- Detalhe central (V) em verde claro -->
+    <path d="M 85 100 L 100 140 L 115 100" stroke="#66BB6A" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Olhos -->
+    <circle cx="85" cy="110" r="4" fill="#81C784"/>
+    <circle cx="115" cy="110" r="4" fill="#81C784"/>
+  </g>
+</svg>
