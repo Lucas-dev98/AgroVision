@@ -42,6 +42,29 @@ services:
       start_period: 5s
 
 
+  # ==================== MONGODB (Vision Service) ====================
+  mongo:
+    image: mongo:7-alpine
+    container_name: agrovision-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
+      MONGO_INITDB_DATABASE: agrovision_vision
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+
   # ==================== MICROSERVICES ====================
   
   # Animal Service - Cattle Inventory Management (porta 8000)
@@ -123,6 +146,35 @@ services:
     restart: unless-stopped
 
 
+  # Vision Service - Computer Vision & Cattle Detection (porta 8003)
+  vision-service:
+    build:
+      context: .
+      dockerfile: services/vision_service/Dockerfile
+    container_name: agrovision-vision-service
+    environment:
+      MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_vision?authSource=admin
+      MONGODB_DB: agrovision_vision
+      YOLO_MODEL: yolov8n.pt
+      YOLO_CONFIDENCE: ${YOLO_CONFIDENCE:-0.5}
+      MAX_FRAME_SIZE_MB: 10
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${VISION_SERVICE_PORT:-8003}:8003"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+
   # API Gateway - Central Authentication & Routing (porta 8080)
   api-gateway:
     build:
@@ -133,6 +185,7 @@ services:
       ANIMAL_SERVICE_URL: http://animal-service:8000
       PESAGEM_SERVICE_URL: http://pesagem-service:8001
       COTACAO_SERVICE_URL: http://cotacao-service:8002
+      VISION_SERVICE_URL: http://vision-service:8003
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       REDIS_URL: redis://redis:6379/3
     ports:
@@ -141,6 +194,7 @@ services:
       - animal-service
       - pesagem-service
       - cotacao-service
+      - vision-service
     networks:
       - agrovision
     healthcheck:
@@ -157,6 +211,8 @@ volumes:
   db_data:
     driver: local
   redis_data:
+    driver: local
+  mongo_data:
     driver: local
 
 
