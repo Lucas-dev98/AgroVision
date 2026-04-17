@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from datetime import datetime, timedelta
 from app.schemas import AnomalyType, AnomalyDetection, AnimalBehavior
 
