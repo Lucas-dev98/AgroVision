@@ -3,6 +3,7 @@ import { useAnimals } from '@hooks/useAnimals'
 import Button from '@components/atoms/Button'
 import Card from '@components/atoms/Card'
 import apiService from '@services/api'
+import './styles/global.css'
 import './styles/App.css'
 
 function App() {
