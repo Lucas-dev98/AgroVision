@@ -175,6 +175,32 @@ services:
     restart: unless-stopped
 
 
+  # ML Service - Deep Learning & Behavior Analysis (porta 8004)
+  ml-service:
+    build:
+      context: .
+      dockerfile: services/ml_service/Dockerfile
+    container_name: agrovision-ml-service
+    environment:
+      MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_ml?authSource=admin
+      MONGODB_DB: agrovision_ml
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${ML_SERVICE_PORT:-8004}:8004"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+
   # API Gateway - Central Authentication & Routing (porta 8080)
   api-gateway:
     build:
@@ -186,6 +212,7 @@ services:
       PESAGEM_SERVICE_URL: http://pesagem-service:8001
       COTACAO_SERVICE_URL: http://cotacao-service:8002
       VISION_SERVICE_URL: http://vision-service:8003
+      ML_SERVICE_URL: http://ml-service:8004
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       REDIS_URL: redis://redis:6379/3
     ports:
@@ -195,6 +222,7 @@ services:
       - pesagem-service
       - cotacao-service
       - vision-service
+      - ml-service
     networks:
       - agrovision
     healthcheck:
