@@ -1,8 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+
 from app.api import router
-from app.core import get_db
 from app.core.config import settings
+from app.core.init_db import init_db
+
+logger = logging.getLogger(__name__)
+
+# Inicializar banco de dados com retry
+try:
+    init_db(max_retries=5, retry_interval=2)
+except Exception as e:
+    logger.error(f"Falha ao inicializar banco de dados: {e}")
+    raise
 
 app = FastAPI(
     title=settings.APP_NAME,
