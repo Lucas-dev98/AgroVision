@@ -1,0 +1,208 @@
+/* ========================================
+   SearchBar Component Styles
+   ======================================== */
+
+.search-bar {
+  position: relative;
+  width: 100%;
+}
+
+.search-bar__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  background-color: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0 var(--spacing-md);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-bar:hover:not(.search-bar--disabled) .search-bar__wrapper {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.search-bar:focus-within:not(.search-bar--disabled) .search-bar__wrapper {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Icon (Search)
+   ======================================== */
+
+.search-bar__icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* ========================================
+   Input Field
+   ======================================== */
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-md);
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  outline: none;
+  padding: 0;
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.search-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.search-input--error {
+  color: var(--error);
+}
+
+.search-input--error::placeholder {
+  color: var(--error);
+  opacity: 0.7;
+}
+
+/* ========================================
+   Clear Button
+   ======================================== */
+
+.search-bar__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: var(--spacing-sm);
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--primary);
+    background-color: var(--primary-light);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  & svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ========================================
+   Loading Spinner
+   ======================================== */
+
+.search-bar__spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: var(--spacing-sm);
+  flex-shrink: 0;
+
+  & svg {
+    width: 100%;
+    height: 100%;
+    animation: spin 1s linear infinite;
+    stroke: var(--primary);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   Error State
+   ======================================== */
+
+.search-bar--error .search-bar__wrapper {
+  border-color: var(--error);
+}
+
+.search-bar--error:focus-within .search-bar__wrapper {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+
+.search-bar--loading {
+  opacity: 0.7;
+}
+
+.search-bar--loading .search-input {
+  cursor: wait;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 640px) {
+  .search-bar__wrapper {
+    height: 40px;
+    padding: 0 var(--spacing-sm);
+  }
+
+  .search-input {
+    font-size: var(--font-size-sm);
+  }
+
+  .search-bar__icon {
+    width: 18px;
+    height: 18px;
+    margin-right: var(--spacing-xs);
+  }
+
+  .search-bar__clear {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ========================================
+   Error Message
+   ======================================== */
+
+.search-bar__error {
+  display: block;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--error);
+  line-height: 1.4;
+}
