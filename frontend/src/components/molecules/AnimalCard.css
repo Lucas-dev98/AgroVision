@@ -1,0 +1,297 @@
+/* ========================================
+   AnimalCard Component Styles
+   ======================================== */
+
+.animal-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  height: 100%;
+}
+
+.animal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-light);
+}
+
+.animal-card--hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-light);
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.animal-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-light);
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+}
+
+.animal-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary);
+  margin: 0;
+  flex: 1;
+}
+
+/* ========================================
+   Status Badge
+   ======================================== */
+
+.animal-card__status {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.animal-card__status--active {
+  background-color: var(--success);
+  color: var(--card);
+}
+
+.animal-card__status--inactive {
+  background-color: var(--warning);
+  color: #333;
+}
+
+.animal-card__status--sold {
+  background-color: var(--error);
+  color: var(--card);
+}
+
+/* ========================================
+   Content
+   ======================================== */
+
+.animal-card__content {
+  flex: 1;
+  padding: var(--spacing-lg);
+}
+
+.animal-card__info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.animal-card__info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.animal-card__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.animal-card__value {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.animal-card__rfid {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+  font-weight: var(--font-weight-bold);
+  color: var(--primary);
+}
+
+/* ========================================
+   Footer with Actions
+   ======================================== */
+
+.animal-card__footer {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--border-light);
+  background-color: #FAFAFA;
+}
+
+/* ========================================
+   Action Buttons
+   ======================================== */
+
+.animal-card__action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.animal-card__action svg {
+  width: 16px;
+  height: 16px;
+}
+
+.animal-card__action--edit {
+  background-color: var(--primary-light);
+  color: var(--primary);
+
+  &:hover {
+    background-color: var(--primary);
+    color: var(--card);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.animal-card__action--delete {
+  background-color: #FFE8E8;
+  color: var(--error);
+
+  &:hover {
+    background-color: var(--error);
+    color: var(--card);
+  }
+
+  &:focus {
+    outline: 2px solid var(--error);
+    outline-offset: 2px;
+  }
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .animal-card__header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .animal-card__title {
+    font-size: var(--font-size-md);
+  }
+
+  .animal-card__info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .animal-card__content {
+    padding: var(--spacing-md);
+  }
+
+  .animal-card__footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .animal-card__action {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .animal-card__action svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .animal-card {
+    border-radius: var(--radius-md);
+  }
+
+  .animal-card__header {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .animal-card__title {
+    font-size: var(--font-size-base);
+  }
+
+  .animal-card__info-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+
+  .animal-card__value {
+    font-size: var(--font-size-sm);
+  }
+
+  .animal-card__footer {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .animal-card__action {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .animal-card,
+  .animal-card__action {
+    transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .animal-card {
+    background-color: #2B2B2B;
+    border-color: #444;
+  }
+
+  .animal-card__content {
+    background-color: #2B2B2B;
+  }
+
+  .animal-card__footer {
+    background-color: #1F1F1F;
+  }
+
+  .animal-card__title {
+    color: var(--secondary-light);
+  }
+
+  .animal-card__value {
+    color: #E0E0E0;
+  }
+
+  .animal-card__label {
+    color: #9E9E9E;
+  }
+}
