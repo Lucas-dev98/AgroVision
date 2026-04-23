@@ -24,43 +24,43 @@ describe('Button Component', () => {
   it('renders with primary variant', () => {
     render(<Button variant="primary">Primary</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-blue-600')
+    expect(button).toHaveClass('button--primary')
   })
 
   it('renders with secondary variant', () => {
     render(<Button variant="secondary">Secondary</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-gray-200')
+    expect(button).toHaveClass('button--secondary')
   })
 
   it('renders with danger variant', () => {
     render(<Button variant="danger">Delete</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-red-600')
+    expect(button).toHaveClass('button--danger')
   })
 
   it('renders with small size', () => {
     render(<Button size="sm">Small</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('px-3', 'py-1', 'text-sm')
+    expect(button).toHaveClass('button--sm')
   })
 
   it('renders with medium size', () => {
     render(<Button size="md">Medium</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('px-4', 'py-2', 'text-base')
+    expect(button).toHaveClass('button--md')
   })
 
   it('renders with large size', () => {
     render(<Button size="lg">Large</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('px-6', 'py-3', 'text-lg')
+    expect(button).toHaveClass('button--lg')
   })
 
   it('shows loading state', () => {
     render(<Button loading>Loading</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveTextContent('...')
+    expect(button).toHaveClass('button--loading')
     expect(button).toBeDisabled()
   })
 

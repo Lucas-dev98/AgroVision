@@ -7,14 +7,12 @@ import os
 import json
 import numpy as np
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Optional
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
 from fastapi.responses import JSONResponse
 import cv2
-from motor.motor_asyncio import AsyncDatabase
 
-from app.core import MongoDBConnection, get_db
 from app.services import (
     TrackingService,
     BehaviorAnalysisService,
@@ -33,6 +31,8 @@ from app.schemas import (
     AnimalTrack,
     BehaviorClassification,
 )
+from app.core import MongoDBConnection, get_db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -89,7 +89,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "ml_service",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -97,7 +97,7 @@ async def health_check():
 async def track_animals(
     camera_id: str,
     frame_base64: str,
-    db: AsyncDatabase = Depends(get_db),
+    db: AsyncIOMotorDatabase = Depends(get_db),
 ) -> Dict:
     """
     Track animals in frame
@@ -148,11 +148,11 @@ async def track_animals(
                 anomalies.extend(track_anomalies)
         
         # Create result
-        frame_id = f"{camera_id}-{datetime.utcnow().timestamp()}"
+        frame_id = f"{camera_id}-{datetime.now(timezone.utc).timestamp()}"
         result = TrackingFrameResult(
             frame_id=frame_id,
             camera_id=camera_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             tracks=tracks,
             behaviors=behaviors,
             anomalies=anomalies,
@@ -291,7 +291,7 @@ async def re_identify_animal(
 @app.get("/api/v1/ml/animals/{animal_id}/health")
 async def get_animal_health(
     animal_id: str,
-    db: AsyncDatabase = Depends(get_db),
+    db: AsyncIOMotorDatabase = Depends(get_db),
 ) -> Dict:
     """
     Get health report for animal
@@ -334,7 +334,7 @@ async def get_animal_health(
 
 @app.get("/api/v1/ml/animals/critical")
 async def get_critical_animals(
-    db: AsyncDatabase = Depends(get_db),
+    db: AsyncIOMotorDatabase = Depends(get_db),
 ) -> List[Dict]:
     """
     Get all animals with critical health status

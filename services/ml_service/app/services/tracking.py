@@ -1,10 +1,21 @@
 import time
 import numpy as np
 from typing import List, Dict, Tuple, Optional
-from datetime import datetime
+from datetime import timezone, datetime
 from ultralytics import YOLO
 from ultralytics.trackers.byte_tracker import BYTETracker
 from app.schemas import AnimalTrack
+
+
+class BYTETrackerArgs:
+    """Arguments for BYTETracker - compatible with ultralytics 8.0.228"""
+    def __init__(self):
+        self.track_high_thresh = 0.6
+        self.track_low_thresh = 0.1
+        self.new_track_thresh = 0.7
+        self.track_buffer = 30
+        self.match_thresh = 0.8
+        self.frame_rate = 30
 
 
 class TrackingService:
@@ -18,7 +29,9 @@ class TrackingService:
             model_path: Path to YOLO model
         """
         self.model = YOLO(model_path)
-        self.tracker = BYTETracker(track_thresh=0.5, track_buffer=30, match_thresh=0.8)
+        # Initialize ByteTrack with ultralytics 8.0.228 compatible parameters
+        tracker_args = BYTETrackerArgs()
+        self.tracker = BYTETracker(tracker_args, frame_rate=30)
         self.model_version = "YOLO v8 + ByteTrack"
         
         # Track store
@@ -72,7 +85,7 @@ class TrackingService:
             
             # Convert to schema
             active_tracks = []
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             
             for track in tracks:
                 track_id = int(track.track_id)

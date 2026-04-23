@@ -45,8 +45,9 @@ class TestCotacaoService:
         """Deve calcular média de preço dos últimos dias"""
         service = CotacaoService(db_session)
         
+        hoje = date.today()  # Use actual today
         for i in range(5):
-            data = date(2026, 4, 15) - timedelta(days=i)
+            data = hoje - timedelta(days=i)
             service.criar_cotacao({
                 **cotacao_data,
                 "data_referencia": data,

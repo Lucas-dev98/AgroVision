@@ -2,7 +2,7 @@ import base64
 import io
 import time
 from typing import List, Tuple, Optional
-from datetime import datetime
+from datetime import timezone, datetime
 import numpy as np
 import cv2
 from ultralytics import YOLO
@@ -176,7 +176,7 @@ class YOLODetectionService:
             FrameDetectionResult or None if processing fails
         """
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
         
         start_time = time.time()
         

@@ -1,6 +1,6 @@
 import os
 from typing import Optional
-from motor.motor_asyncio import AsyncClient, AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo.errors import ConnectionFailure
 import asyncio
 
@@ -19,15 +19,15 @@ MAX_FRAME_SIZE_MB = int(os.getenv("MAX_FRAME_SIZE_MB", "10"))
 class MongoDBConnection:
     """MongoDB async connection manager"""
     
-    client: Optional[AsyncClient] = None
-    db: Optional[AsyncDatabase] = None
+    client: Optional[AsyncIOMotorClient] = None
+    db: Optional[AsyncIOMotorDatabase] = None
 
     @classmethod
     async def connect(cls, max_retries: int = 5, retry_interval: int = 2):
         """Connect to MongoDB with retry logic"""
         for attempt in range(max_retries):
             try:
-                cls.client = AsyncClient(MONGODB_URL)
+                cls.client = AsyncIOMotorClient(MONGODB_URL)
                 cls.db = cls.client[MONGODB_DB]
                 
                 # Test connection
@@ -78,7 +78,7 @@ class MongoDBConnection:
             print("✅ MongoDB disconnected")
 
 
-def get_db() -> AsyncDatabase:
+def get_db() -> AsyncIOMotorDatabase:
     """Get MongoDB database instance"""
     if MongoDBConnection.db is None:
         raise RuntimeError("MongoDB not connected")

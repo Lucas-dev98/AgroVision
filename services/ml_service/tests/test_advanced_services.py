@@ -84,6 +84,11 @@ class TestAdvancedAnomalyService:
         with patch("app.services.advanced.AnomalyDetectionAutoencoder"):
             service = AdvancedAnomalyService(device="cpu")
             service.autoencoder = MagicMock()
+            # Mock the autoencoder to return (reconstruction, latent) tuple
+            service.autoencoder.return_value = (
+                MagicMock(),  # reconstruction
+                MagicMock(),  # latent
+            )
             return service
     
     def test_initialization(self, anomaly_service):
@@ -139,6 +144,9 @@ class TestAdvancedReIDService:
         with patch("app.services.advanced.ResNetReID"):
             service = AdvancedReIDService(device="cpu")
             service.resnet_model = MagicMock()
+            # Mock the model to return feature tensor
+            import torch
+            service.resnet_model.return_value = torch.randn(256)
             return service
     
     def test_initialization(self, reid_service):

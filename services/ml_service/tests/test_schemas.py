@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import ValidationError
 from app.schemas import (
     AnimalTrack,
@@ -25,8 +25,8 @@ class TestAnimalTrack:
             current_position={"x": 0.3, "y": 0.4, "w": 0.1, "h": 0.15},
             velocity={"vx": 0.01, "vy": 0.02},
             frames_count=10,
-            first_seen=datetime.utcnow(),
-            last_seen=datetime.utcnow(),
+            first_seen=datetime.now(timezone.utc),
+            last_seen=datetime.now(timezone.utc),
         )
         
         assert track.track_id == 1
@@ -41,8 +41,8 @@ class TestAnimalTrack:
                 confidence=1.5,  # Invalid
                 current_position={"x": 0.3, "y": 0.4, "w": 0.1, "h": 0.15},
                 frames_count=1,
-                first_seen=datetime.utcnow(),
-                last_seen=datetime.utcnow(),
+                first_seen=datetime.now(timezone.utc),
+                last_seen=datetime.now(timezone.utc),
             )
     
     def test_track_optional_animal_id(self):
@@ -52,8 +52,8 @@ class TestAnimalTrack:
             confidence=0.95,
             current_position={"x": 0.3, "y": 0.4, "w": 0.1, "h": 0.15},
             frames_count=1,
-            first_seen=datetime.utcnow(),
-            last_seen=datetime.utcnow(),
+            first_seen=datetime.now(timezone.utc),
+            last_seen=datetime.now(timezone.utc),
         )
         
         assert track.animal_id is None
@@ -137,7 +137,7 @@ class TestAnomalyDetection:
             confidence=0.85,
             description="Abnormal gait detected",
             recommended_action="Schedule vet check",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         
         assert anomaly.animal_id == "RFID-001"
@@ -182,7 +182,7 @@ class TestTrackingFrameResult:
     
     def test_valid_frame_result(self):
         """Test creating valid frame result"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         track = AnimalTrack(
             track_id=1,
             confidence=0.9,
@@ -223,7 +223,7 @@ class TestAnimalHealthReport:
             health_score=0.85,
             risk_level="low",
             recommendations=["Continue monitoring", "Feed as normal"],
-            last_updated=datetime.utcnow(),
+            last_updated=datetime.now(timezone.utc),
         )
         
         assert report.animal_id == "RFID-001"

@@ -20,7 +20,7 @@ class TestMongoDBConnection:
     @pytest.mark.asyncio
     async def test_connection_initialization(self, reset_mongo):
         """Test MongoDB connection initialization"""
-        with patch("app.core.database.AsyncClient") as mock_client:
+        with patch("app.core.database.AsyncIOMotorClient") as mock_client:
             # Setup mock
             mock_instance = AsyncMock()
             mock_client.return_value = mock_instance
@@ -35,7 +35,7 @@ class TestMongoDBConnection:
     @pytest.mark.asyncio
     async def test_connection_retry_logic(self, reset_mongo):
         """Test connection retry logic"""
-        with patch("app.core.database.AsyncClient") as mock_client:
+        with patch("app.core.database.AsyncIOMotorClient") as mock_client:
             # Simulate connection failures
             mock_client.side_effect = Exception("Connection failed")
             
@@ -45,7 +45,7 @@ class TestMongoDBConnection:
     @pytest.mark.asyncio
     async def test_disconnect(self, reset_mongo):
         """Test MongoDB disconnection"""
-        with patch("app.core.database.AsyncClient") as mock_client:
+        with patch("app.core.database.AsyncIOMotorClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value = mock_instance
             mock_instance.admin.command = AsyncMock()
@@ -59,7 +59,7 @@ class TestMongoDBConnection:
     @pytest.mark.asyncio
     async def test_index_creation(self, reset_mongo):
         """Test MongoDB index creation"""
-        with patch("app.core.database.AsyncClient") as mock_client:
+        with patch("app.core.database.AsyncIOMotorClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value = mock_instance
             mock_instance.admin.command = AsyncMock()
@@ -89,7 +89,7 @@ class TestMongoDBConnection:
     @pytest.mark.asyncio
     async def test_get_db_with_connection(self, reset_mongo):
         """Test get_db returns database instance"""
-        with patch("app.core.database.AsyncClient") as mock_client:
+        with patch("app.core.database.AsyncIOMotorClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value = mock_instance
             mock_instance.admin.command = AsyncMock()

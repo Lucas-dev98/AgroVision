@@ -18,7 +18,7 @@ describe('Card Component', () => {
   it('applies base styles', () => {
     const { container } = render(<Card>Content</Card>)
     const card = container.firstChild
-    expect(card).toHaveClass('bg-white', 'rounded-lg', 'shadow-md', 'p-4')
+    expect(card).toHaveClass('card')
   })
 
   it('handles click events when onClick is provided', async () => {

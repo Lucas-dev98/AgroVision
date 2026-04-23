@@ -12,7 +12,7 @@ Classes:
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import timezone, datetime, timedelta
 import asyncio
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
@@ -53,9 +53,9 @@ class TrackingDataLoader:
             List of tracking records with position, timestamp, confidence
         """
         if start_date is None:
-            start_date = datetime.utcnow() - timedelta(days=7)
+            start_date = datetime.now(timezone.utc) - timedelta(days=7)
         if end_date is None:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         query = {
             "animal_id": animal_id,
@@ -112,7 +112,7 @@ class TrackingDataLoader:
         Returns:
             List of recent tracking records
         """
-        start_date = datetime.utcnow() - timedelta(hours=hours)
+        start_date = datetime.now(timezone.utc) - timedelta(hours=hours)
         query = {"timestamp": {"$gte": start_date}}
 
         cursor = (
@@ -158,9 +158,9 @@ class BehaviorDataLoader:
             List of behavior records with labels and confidence
         """
         if start_date is None:
-            start_date = datetime.utcnow() - timedelta(days=7)
+            start_date = datetime.now(timezone.utc) - timedelta(days=7)
         if end_date is None:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         query = {
             "animal_id": animal_id,
@@ -283,7 +283,7 @@ class AnomalyDataLoader:
         Returns:
             Dictionary with baseline metrics (activity, movement, etc.)
         """
-        start_date = datetime.utcnow() - timedelta(days=window_days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=window_days)
         query = {
             "animal_id": animal_id,
             "timestamp": {"$gte": start_date},

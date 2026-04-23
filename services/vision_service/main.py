@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Depends
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 import logging
 import uuid
@@ -86,7 +86,7 @@ async def health_check():
         version="1.0.0",
         models_loaded=models_loaded,
         mongodb_connected=mongodb_connected,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
 
 
@@ -116,7 +116,7 @@ async def process_frame(request: ProcessFrameRequest, db=Depends(get_db)):
     
     try:
         # Generate frame ID
-        frame_id = f"frame-{request.camera_id}-{datetime.utcnow().timestamp():.0f}"
+        frame_id = f"frame-{request.camera_id}-{datetime.now(timezone.utc).timestamp():.0f}"
         
         # Process frame
         result = yolo_service.process_frame(
@@ -187,7 +187,7 @@ async def get_animals_detected(
             "camera_id": camera_id,
             "detections": detections,
             "count": len(detections),
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Failed to get animals: {e}")
@@ -220,7 +220,7 @@ async def get_trough_status(camera_id: str, db=Depends(get_db)):
                 "camera_id": camera_id,
                 "status": TroughStatus.UNKNOWN.value,
                 "history": [],
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(timezone.utc),
             }
         
         # Get latest status
@@ -230,7 +230,7 @@ async def get_trough_status(camera_id: str, db=Depends(get_db)):
             "camera_id": camera_id,
             "status": latest.get("trough_status", TroughStatus.UNKNOWN.value),
             "history": [r.get("trough_status") for r in recent],
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Failed to get trough status: {e}")
@@ -276,7 +276,7 @@ async def get_animal_history(
             "animal_id": animal_id,
             "locations": history,
             "count": len(history),
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Failed to get animal history: {e}")
@@ -308,7 +308,7 @@ async def get_latest_locations(camera_id: str, db=Depends(get_db)):
             "camera_id": camera_id,
             "locations": locations,
             "count": len(locations),
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Failed to get latest locations: {e}")
@@ -362,7 +362,7 @@ async def calibrate_camera(
             "camera_id": camera_id,
             "location": location,
             "confidence_threshold": confidence_threshold,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Camera calibration failed: {e}")
@@ -401,7 +401,7 @@ async def get_camera_info(camera_id: str, db=Depends(get_db)):
             "camera_id": camera_id,
             "calibration": calibration,
             "unique_animals_24h": unique_animals,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Failed to get camera info: {e}")
@@ -431,7 +431,7 @@ async def list_cameras(db=Depends(get_db)):
         return {
             "cameras": cameras,
             "count": len(cameras),
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
     except Exception as e:
         logger.error(f"❌ Failed to list cameras: {e}")

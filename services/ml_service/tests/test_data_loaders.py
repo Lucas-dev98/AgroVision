@@ -8,7 +8,7 @@ Run with: pytest tests/test_data_loaders.py -v
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import numpy as np
 import torch
 
@@ -40,7 +40,7 @@ class TestBehaviorPreprocessor:
         record = {
             "animal_id": "cow_001",
             "behavior_type": "grazing",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "duration_seconds": 300,
         }
         is_valid, error = BehaviorPreprocessor.validate_behavior_record(record)
@@ -63,7 +63,7 @@ class TestBehaviorPreprocessor:
         record = {
             "animal_id": "cow_001",
             "behavior_type": "invalid_behavior",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "duration_seconds": 300,
         }
         is_valid, error = BehaviorPreprocessor.validate_behavior_record(record)
@@ -108,7 +108,7 @@ class TestAnomalyPreprocessor:
         """Test validation of valid health record."""
         record = {
             "animal_id": "cow_001",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "activity_level": 0.7,
         }
         is_valid, error = AnomalyPreprocessor.validate_health_record(record)
@@ -119,7 +119,7 @@ class TestAnomalyPreprocessor:
         """Test validation fails without features."""
         record = {
             "animal_id": "cow_001",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         is_valid, error = AnomalyPreprocessor.validate_health_record(record)
         assert is_valid is False
@@ -173,7 +173,7 @@ class TestReIDPreprocessor:
             "animal_id": "cow_001",
             "camera_id": "cam_001",
             "image_path": "/path/to/image.jpg",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         is_valid, error = ReIDPreprocessor.validate_image_record(record)
         assert is_valid is True
@@ -185,7 +185,7 @@ class TestReIDPreprocessor:
             "animal_id": "cow_001",
             "camera_id": "cam_001",
             "image_path": "/path/to/image.txt",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         is_valid, error = ReIDPreprocessor.validate_image_record(record)
         assert is_valid is False
@@ -247,13 +247,13 @@ class TestRealBehaviorDataset:
             {
                 "animal_id": "cow_001",
                 "behavior_type": "grazing",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "duration_seconds": 300,
             },
             {
                 "animal_id": "cow_001",
                 "behavior_type": "walking",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "duration_seconds": 60,
             },
         ]
@@ -266,7 +266,7 @@ class TestRealBehaviorDataset:
             {
                 "animal_id": "cow_001",
                 "behavior_type": "grazing",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "duration_seconds": 300,
             },
         ]
@@ -286,7 +286,7 @@ class TestRealAnomalyDataset:
         records = [
             {
                 "animal_id": "cow_001",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "activity_level": 0.7,
                 "movement_distance": 100,
                 "heart_rate": 60,
@@ -303,7 +303,7 @@ class TestRealAnomalyDataset:
         records = [
             {
                 "animal_id": "cow_001",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "activity_level": 0.7,
                 "movement_distance": 100,
                 "heart_rate": 60,

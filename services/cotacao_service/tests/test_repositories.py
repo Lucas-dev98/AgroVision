@@ -62,7 +62,7 @@ class TestCotacaoRepository:
         repo = CotacaoRepository(db_session)
         
         from datetime import date as date_class
-        hoje = date_class(2026, 4, 15)
+        hoje = date_class.today()  # Use actual today
         
         # Criar cotações para os últimos 10 dias
         for i in range(10):

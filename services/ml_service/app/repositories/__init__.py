@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import timezone, datetime
 from bson import ObjectId
-from motor.motor_asyncio import AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.models_db import TrackingDocument, AnimalReIdDocument, AnimalHealthDocument
 from app.schemas import AnimalTrack, BehaviorClassification, AnomalyDetection
 
@@ -9,7 +9,7 @@ from app.schemas import AnimalTrack, BehaviorClassification, AnomalyDetection
 class TrackingRepository:
     """Repository for tracking documents"""
     
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.collection = db["tracking"]
     
@@ -25,7 +25,7 @@ class TrackingRepository:
         doc = {
             "frame_id": frame_id,
             "camera_id": camera_id,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
             "tracks": [t.dict() for t in tracks],
             "behaviors": [b.dict() for b in behaviors],
             "anomalies": [a.dict() for a in anomalies],
@@ -54,7 +54,7 @@ class TrackingRepository:
     ) -> List[Dict]:
         """Get recent tracking records"""
         from datetime import timedelta
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         
         cursor = self.collection.find(
             {"timestamp": {"$gte": cutoff}}
@@ -66,7 +66,7 @@ class TrackingRepository:
 class ReIdRepository:
     """Repository for re-identification documents"""
     
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.collection = db["animal_reid"]
     
@@ -85,7 +85,7 @@ class ReIdRepository:
             "secondary_camera_id": secondary_camera,
             "similarity_score": similarity_score,
             "confirmed": confirmed,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
         
         result = await self.collection.insert_one(doc)
@@ -114,7 +114,7 @@ class ReIdRepository:
 class HealthRepository:
     """Repository for animal health documents"""
     
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.collection = db["animal_health"]
     
@@ -131,7 +131,7 @@ class HealthRepository:
             "health_score": health_score,
             "risk_level": risk_level,
             "recommendations": recommendations,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
         }
         
         result = await self.collection.insert_one(doc)

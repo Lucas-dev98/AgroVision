@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import timezone, datetime
 from bson import ObjectId
 
 
@@ -16,10 +16,6 @@ class PyObjectId(ObjectId):
             raise ValueError("Invalid ObjectId")
         return ObjectId(v)
 
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
-
 
 class DetectionDocument(BaseModel):
     """MongoDB document for detections"""
@@ -33,12 +29,12 @@ class DetectionDocument(BaseModel):
     processing_time_ms: float
     model_version: str
     image_url: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "frame_id": "frame-2026-04-16-001",
                 "timestamp": "2026-04-16T10:30:00Z",
@@ -60,7 +56,7 @@ class AnimalLocationDocument(BaseModel):
     location: dict  # {x_min, y_min, x_max, y_max}
     confidence: float
     frame_id: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Config:
         populate_by_name = True
@@ -76,7 +72,7 @@ class CameraCalibrationDocument(BaseModel):
     latitude: Optional[float] = None
     calibration_data: dict = Field(default_factory=dict)
     yolo_confidence_threshold: float = 0.5
-    last_calibrated: datetime = Field(default_factory=datetime.utcnow)
+    last_calibrated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Config:
         populate_by_name = True

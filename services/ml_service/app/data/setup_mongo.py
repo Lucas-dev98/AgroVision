@@ -15,7 +15,7 @@ Creates:
 import asyncio
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
-from datetime import datetime
+from datetime import timezone, datetime
 import os
 
 logging.basicConfig(level=logging.INFO)
@@ -107,14 +107,14 @@ class MongoDBSetup:
                     "animal_id": "cow_001",
                     "camera_id": "cam_001",
                     "position": {"x": 100, "y": 200},
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "confidence": 0.95,
                 },
                 {
                     "animal_id": "cow_002",
                     "camera_id": "cam_001",
                     "position": {"x": 150, "y": 250},
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "confidence": 0.92,
                 },
             ]
@@ -128,21 +128,21 @@ class MongoDBSetup:
                 {
                     "animal_id": "cow_001",
                     "behavior_type": "grazing",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "duration_seconds": 300,
                     "confidence": 0.9,
                 },
                 {
                     "animal_id": "cow_001",
                     "behavior_type": "walking",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "duration_seconds": 60,
                     "confidence": 0.85,
                 },
                 {
                     "animal_id": "cow_002",
                     "behavior_type": "resting",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "duration_seconds": 1800,
                     "confidence": 0.95,
                 },
@@ -156,7 +156,7 @@ class MongoDBSetup:
             sample_health = [
                 {
                     "animal_id": "cow_001",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "activity_level": 0.7,
                     "movement_distance": 150,
                     "heart_rate": 60,
@@ -167,7 +167,7 @@ class MongoDBSetup:
                 },
                 {
                     "animal_id": "cow_002",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "activity_level": 0.3,
                     "movement_distance": 20,
                     "heart_rate": 55,
@@ -188,21 +188,21 @@ class MongoDBSetup:
                     "animal_id": "cow_001",
                     "camera_id": "cam_001",
                     "image_path": "/storage/images/cow_001_cam_001_001.jpg",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "quality_score": 0.95,
                 },
                 {
                     "animal_id": "cow_001",
                     "camera_id": "cam_002",
                     "image_path": "/storage/images/cow_001_cam_002_001.jpg",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "quality_score": 0.92,
                 },
                 {
                     "animal_id": "cow_002",
                     "camera_id": "cam_001",
                     "image_path": "/storage/images/cow_002_cam_001_001.jpg",
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "quality_score": 0.90,
                 },
             ]

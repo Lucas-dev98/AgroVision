@@ -31,8 +31,12 @@
     "paths": {
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
+      "@atoms/*": ["src/components/atoms/*"],
+      "@organisms/*": ["src/components/organisms/*"],
       "@hooks/*": ["src/hooks/*"],
+      "@pages/*": ["src/pages/*"],
       "@services/*": ["src/services/*"],
+      "@styles/*": ["src/styles/*"],
       "@types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"]
     }

@@ -1,15 +1,8 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libgomp1 \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+# Skip system dependencies - use Python wheels instead
 
 # Copy requirements
 COPY services/ml_service/requirements.txt .

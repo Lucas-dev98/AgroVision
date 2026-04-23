@@ -1,7 +1,6 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, Mock
-from motor.motor_asyncio import AsyncClient
 import mongomock
 
 

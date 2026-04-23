@@ -239,3 +239,75 @@ def clear_revoked_tokens() -> None:
     """Limpar lista de tokens revogados (para testes)"""
     global _revoked_tokens
     _revoked_tokens.clear()
+
+
+# ==================== Password Reset Token ====================
+
+PASSWORD_RESET_TOKEN_EXPIRE_HOURS = 1
+
+
+def create_password_reset_token(
+    cpf_cnpj: str,
+    expires_delta: Optional[timedelta] = None
+) -> str:
+    """
+    Criar token para resetar senha
+    
+    Args:
+        cpf_cnpj: CPF ou CNPJ do usuário
+        expires_delta: Delta de expiração customizado (padrão: 1 hora)
+    
+    Returns:
+        Token JWT codificado para reset de senha
+    """
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRE_HOURS)
+    
+    to_encode: Dict[str, Any] = {
+        "sub": cpf_cnpj,
+        "exp": expire,
+        "type": "password_reset",
+        "iat": datetime.now(timezone.utc)
+    }
+    
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def verify_password_reset_token(token: str) -> str:
+    """
+    Verificar e extrair CPF/CNPJ de token de reset de senha
+    
+    Args:
+        token: Token JWT de reset de senha
+    
+    Returns:
+        CPF/CNPJ do usuário
+    
+    Raises:
+        ValueError: Se token é inválido, expirado ou do tipo errado
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Verificar tipo de token
+        token_type = payload.get("type")
+        if token_type != "password_reset":
+            raise ValueError("Token não é do tipo password_reset")
+        
+        cpf_cnpj = payload.get("sub")
+        if cpf_cnpj is None:
+            raise ValueError("CPF/CNPJ não encontrado no token")
+        
+        return cpf_cnpj
+    
+    except jwt.ExpiredSignatureError:
+        raise ValueError("Token expirado")
+    except JWTError as e:
+        raise ValueError(f"Token inválido: {str(e)}")
+    except ValueError:
+        raise
+    except Exception as e:
+        raise ValueError(f"Erro ao verificar token: {str(e)}")

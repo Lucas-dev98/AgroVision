@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Dict, Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import timezone, datetime, timedelta
 from app.schemas import AnomalyType, AnomalyDetection, AnimalBehavior
 
 
@@ -33,8 +33,8 @@ class AnomalyDetectionService:
             self.animal_baselines[animal_id] = {
                 "behavior_data": behavior_data,
                 "weight": weight,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc),
             }
             return True
         except Exception as e:
@@ -69,7 +69,7 @@ class AnomalyDetectionService:
             return anomalies
         
         baseline = self.animal_baselines[animal_id]
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
         
         # Anomaly 1: Unusual behavior (lethargy)
         lethargy = self._check_lethargy(
@@ -205,7 +205,7 @@ class AnomalyDetectionService:
             return []
         
         history = self.anomaly_history[animal_id]
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
         
         return [a for a in history if a.timestamp >= cutoff_time]
     

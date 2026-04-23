@@ -97,7 +97,7 @@ describe('Modal Component', () => {
         </Modal>
       )
       const dialog = screen.getByRole('dialog')
-      expect(dialog.parentElement).toHaveClass('modal__content--large')
+      expect(dialog).toHaveClass('modal__content--large')
     })
   })
 
@@ -297,7 +297,7 @@ describe('Modal Component', () => {
         </Modal>
       )
       const dialog = screen.getByRole('dialog')
-      expect(dialog).toHaveClass('modal')
+      expect(dialog).toHaveClass('modal__content')
     })
   })
 })

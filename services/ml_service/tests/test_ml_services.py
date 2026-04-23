@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from unittest.mock import Mock, patch
-from datetime import datetime
+from datetime import datetime, timezone
 from app.services.tracking import TrackingService
 from app.services.reid import ReIdentificationService
 from app.services.behavior import BehaviorAnalysisService
@@ -96,16 +96,16 @@ class TestTrackingService:
             confidence=0.9,
             current_position={"x": 0.3, "y": 0.4, "w": 0.1, "h": 0.2},
             frames_count=1,
-            last_seen=datetime.utcnow(),
-            first_seen=datetime.utcnow(),
+            last_seen=datetime.now(timezone.utc),
+            first_seen=datetime.now(timezone.utc),
         )
         track2 = AnimalTrack(
             track_id=2,
             confidence=0.85,
             current_position={"x": 0.5, "y": 0.6, "w": 0.1, "h": 0.2},
             frames_count=1,
-            last_seen=datetime.utcnow(),
-            first_seen=datetime.utcnow(),
+            last_seen=datetime.now(timezone.utc),
+            first_seen=datetime.now(timezone.utc),
         )
         
         tracking_service.active_tracks[1] = track1

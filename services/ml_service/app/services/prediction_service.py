@@ -15,7 +15,7 @@ import time
 import asyncio
 from typing import List, Dict, Any, AsyncGenerator, Optional
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import timezone, datetime
 import numpy as np
 
 import torch
@@ -345,7 +345,7 @@ class PredictionService:
             batch_size=len(request.inputs),
             processing_time_ms=elapsed_ms,
             model_version=self.model_version,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
     
     async def stream_predict(
@@ -440,7 +440,7 @@ class PredictionService:
         """
         health = {
             "status": "healthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "device": self.device,
             "models_loaded": len(self.models),
             "models": {

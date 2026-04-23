@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -35,7 +35,7 @@ class BoundingBox(BaseModel):
     y_max: float = Field(..., ge=0.0, le=1.0)
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "x_min": 0.1,
                 "y_min": 0.2,
@@ -56,7 +56,7 @@ class Detection(BaseModel):
     metadata: dict = Field(default_factory=dict)
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "detection_type": "animal",
                 "confidence": 0.95,
@@ -87,7 +87,7 @@ class FrameDetectionResult(BaseModel):
     image_url: Optional[str] = None
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "frame_id": "frame-2026-04-16-001",
                 "timestamp": "2026-04-16T10:30:00Z",
@@ -106,11 +106,11 @@ class ProcessFrameRequest(BaseModel):
     """Request to process a frame"""
     frame_data: str = Field(..., description="Base64 encoded image data")
     camera_id: str = Field(..., description="Camera identifier")
-    timestamp: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    timestamp: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: dict = Field(default_factory=dict)
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "frame_data": "iVBORw0KGgoAAAANSUhEUgAAAA...",
                 "camera_id": "camera-1",
@@ -137,7 +137,7 @@ class HealthCheckResponse(BaseModel):
     timestamp: datetime
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "status": "healthy",
                 "version": "1.0.0",

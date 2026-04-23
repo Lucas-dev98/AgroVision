@@ -1,6 +1,6 @@
 from typing import List, Optional
-from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncDatabase, AsyncCollection
+from datetime import timezone, datetime, timedelta
+from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorCollection
 from app.models import DetectionDocument, AnimalLocationDocument, CameraCalibrationDocument
 from app.schemas import FrameDetectionResult
 
@@ -8,9 +8,9 @@ from app.schemas import FrameDetectionResult
 class DetectionRepository:
     """Repository for detection documents in MongoDB"""
     
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
-        self.collection: AsyncCollection = db["detections"]
+        self.collection: AsyncIOMotorCollection = db["detections"]
     
     async def create(self, frame_result: FrameDetectionResult) -> str:
         """
@@ -32,7 +32,7 @@ class DetectionRepository:
             "processing_time_ms": frame_result.processing_time_ms,
             "model_version": frame_result.model_version,
             "image_url": frame_result.image_url,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
         }
         
         result = await self.collection.insert_one(doc)
@@ -55,7 +55,7 @@ class DetectionRepository:
     
     async def get_recent(self, hours: int = 24, limit: int = 100) -> List[dict]:
         """Get recent detections"""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        since = datetime.now(timezone.utc) - timedelta(hours=hours)
         cursor = self.collection.find({"timestamp": {"$gte": since}})
         cursor = cursor.sort("timestamp", -1).limit(limit)
         return await cursor.to_list(length=limit)
@@ -73,9 +73,9 @@ class DetectionRepository:
 class AnimalLocationRepository:
     """Repository for animal location documents in MongoDB"""
     
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
-        self.collection: AsyncCollection = db["animal_locations"]
+        self.collection: AsyncIOMotorCollection = db["animal_locations"]
     
     async def create_location(
         self,
@@ -94,7 +94,7 @@ class AnimalLocationRepository:
             "location": location,
             "confidence": confidence,
             "frame_id": frame_id,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
         }
         
         result = await self.collection.insert_one(doc)
@@ -107,7 +107,7 @@ class AnimalLocationRepository:
         hours: int = 24,
     ) -> List[dict]:
         """Get animal location history"""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        since = datetime.now(timezone.utc) - timedelta(hours=hours)
         cursor = self.collection.find({
             "animal_id": animal_id,
             "timestamp": {"$gte": since},
@@ -132,7 +132,7 @@ class AnimalLocationRepository:
     
     async def count_unique_animals(self, camera_id: str, hours: int = 24) -> int:
         """Count unique animals detected in camera during period"""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        since = datetime.now(timezone.utc) - timedelta(hours=hours)
         result = await self.collection.distinct(
             "animal_id",
             {"camera_id": camera_id, "timestamp": {"$gte": since}},
@@ -143,9 +143,9 @@ class AnimalLocationRepository:
 class CameraCalibrationRepository:
     """Repository for camera calibration documents in MongoDB"""
     
-    def __init__(self, db: AsyncDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
-        self.collection: AsyncCollection = db["camera_calibrations"]
+        self.collection: AsyncIOMotorCollection = db["camera_calibrations"]
     
     async def create_or_update(
         self,
@@ -164,7 +164,7 @@ class CameraCalibrationRepository:
             "latitude": latitude,
             "calibration_data": calibration_data or {},
             "yolo_confidence_threshold": confidence_threshold,
-            "last_calibrated": datetime.utcnow(),
+            "last_calibrated": datetime.now(timezone.utc),
         }
         
         result = await self.collection.update_one(

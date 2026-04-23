@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.repositories import TrackingRepository, ReIdRepository, HealthRepository
 from app.schemas import AnimalTrack, BehaviorClassification
 
@@ -27,7 +27,7 @@ class TestTrackingRepository:
         
         repo = TrackingRepository(mock_db)
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         track = AnimalTrack(
             track_id=1,
             confidence=0.9,

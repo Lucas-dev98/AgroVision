@@ -1,9 +1,15 @@
 import torch
+import torch.nn.functional as F
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 from app.schemas import BehaviorClassification, AnimalBehavior
-from app.models.deep_learning import CNNBehaviorClassifier, LSTMTemporalAnalyzer
+from app.models.deep_learning import (
+    CNNBehaviorClassifier,
+    AnomalyDetectionAutoencoder,
+    ResNetReID,
+    LSTMTemporalAnalyzer,
+)
 
 
 class AdvancedBehaviorService:
@@ -207,7 +213,7 @@ class AdvancedAnomalyService:
             
             with torch.no_grad():
                 reconstruction, _ = self.autoencoder(feat_tensor)
-                error = float(torch.mse_loss(reconstruction, feat_tensor))
+                error = float(F.mse_loss(reconstruction, feat_tensor))
             
             # Store baseline (slightly above actual)
             self.baselines[animal_id] = error * 1.2
@@ -241,7 +247,7 @@ class AdvancedAnomalyService:
             
             with torch.no_grad():
                 reconstruction, latent = self.autoencoder(feat_tensor)
-                error = float(torch.mse_loss(reconstruction, feat_tensor))
+                error = float(F.mse_loss(reconstruction, feat_tensor))
             
             baseline = self.baselines.get(animal_id, error)
             anomaly_score = min(error / (baseline + 1e-6), 2.0)  # Clamp to [0, 2]

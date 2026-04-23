@@ -3,7 +3,7 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 import torch
 import numpy as np

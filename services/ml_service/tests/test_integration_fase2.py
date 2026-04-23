@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import base64
 import cv2
+from typing import Dict
 
 from app.models.deep_learning import (
     CNNBehaviorClassifier,

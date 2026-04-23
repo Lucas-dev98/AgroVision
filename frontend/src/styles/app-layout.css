@@ -20,8 +20,21 @@ header {
 .header__top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
+}
+
+.header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .header__logo {

@@ -1,21 +1,19 @@
-FROM python:3.12.3-slim
+FROM python:3.12.3-slim-bookworm
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libopencv-dev \
-    python3-opencv \
-    && rm -rf /var/lib/apt/lists/*
+# Skip system dependencies - use Python wheels instead
 
 # Copy requirements
-COPY requirements.txt .
+COPY services/vision_service/requirements.txt .
 
-# Install Python dependencies
+# Install Python dependencies with pre-built wheels (much faster)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY services/vision_service/app ./app
+COPY services/vision_service/main.py .
+COPY services/vision_service/models_data ./models_data
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

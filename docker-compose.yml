@@ -44,7 +44,7 @@ services:
 
   # ==================== MONGODB (Vision Service) ====================
   mongo:
-    image: mongo:7-alpine
+    image: mongo:7
     container_name: agrovision-mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
@@ -201,7 +201,7 @@ services:
     restart: unless-stopped
 
 
-  # API Gateway - Central Authentication & Routing (porta 8080)
+  # API Gateway - Central Authentication & Routing (porta 8081)
   api-gateway:
     build:
       context: .
@@ -216,7 +216,7 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       REDIS_URL: redis://redis:6379/3
     ports:
-      - "${GATEWAY_PORT:-8080}:8080"
+      - "${GATEWAY_PORT:-8081}:8080"
     depends_on:
       - animal-service
       - pesagem-service

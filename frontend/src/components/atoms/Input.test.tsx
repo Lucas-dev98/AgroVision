@@ -35,14 +35,14 @@ describe('Input Component', () => {
     render(<Input error="This field is required" />)
     const errorMsg = screen.getByText('This field is required')
     expect(errorMsg).toBeInTheDocument()
-    expect(errorMsg).toHaveClass('text-red-600')
+    expect(errorMsg).toHaveClass('input-error')
   })
 
   it('displays helper text when no error', () => {
     render(<Input helperText="This field is optional" />)
     const helperText = screen.getByText('This field is optional')
     expect(helperText).toBeInTheDocument()
-    expect(helperText).toHaveClass('text-gray-500')
+    expect(helperText).toHaveClass('input-helper')
   })
 
   it('hides helper text when error is present', () => {
@@ -61,7 +61,7 @@ describe('Input Component', () => {
   it('applies full width class', () => {
     const { container } = render(<Input fullWidth />)
     const wrapper = container.firstChild
-    expect(wrapper).toHaveClass('w-full')
+    expect(wrapper).toHaveClass('input-wrapper')
   })
 
   it('handles different input types', () => {

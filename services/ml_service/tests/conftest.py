@@ -1,6 +1,13 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 import torch
+from pathlib import Path
+
+
+@pytest.fixture(scope="session")
+def ml_service_path():
+    """Get the ML service root path (session scoped)"""
+    return str(Path(__file__).parent.parent)
 
 
 @pytest.fixture

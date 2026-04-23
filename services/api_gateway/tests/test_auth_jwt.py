@@ -4,7 +4,7 @@ Validar geração, validação, refresh e revogação de tokens JWT
 """
 import pytest
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 
@@ -431,7 +431,7 @@ class TestTokenExpiration:
         payload = get_token_payload(token)
         
         exp_timestamp = payload["exp"]
-        now_timestamp = datetime.utcnow().timestamp()
+        now_timestamp = datetime.now(timezone.utc).timestamp()
         
         time_until_expiry = exp_timestamp - now_timestamp
         # Deve expirar em mais de 1 hora, até 30 dias

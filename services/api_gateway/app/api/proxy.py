@@ -1,6 +1,7 @@
 """API Gateway - Rotas de Proxy Reverso"""
 from fastapi import APIRouter, Request, HTTPException
-from typing import Any, Dict
+from fastapi.responses import JSONResponse
+from typing import Any, Dict, Union
 from app.services import ProxyService
 
 router = APIRouter()
@@ -8,8 +9,8 @@ router = APIRouter()
 
 # ==================== ANIMAL SERVICE ROUTES ====================
 
-@router.api_route("/api/v1/animais/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def proxy_animals(path: str, request: Request):
+@router.api_route("/api/v1/animais/{path:path}", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
+async def proxy_animals(path: str, request: Request) -> JSONResponse:
     """Roteia requisições para animal-service"""
     method = request.method
     body = None
@@ -41,8 +42,8 @@ async def proxy_animals(path: str, request: Request):
 
 # ==================== PESAGEM SERVICE ROUTES ====================
 
-@router.api_route("/api/v1/pesagens/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def proxy_pesagens(path: str, request: Request):
+@router.api_route("/api/v1/pesagens/{path:path}", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
+async def proxy_pesagens(path: str, request: Request) -> JSONResponse:
     """Roteia requisições para pesagem-service"""
     method = request.method
     body = None
@@ -74,8 +75,8 @@ async def proxy_pesagens(path: str, request: Request):
 
 # ==================== COTACAO SERVICE ROUTES ====================
 
-@router.api_route("/api/v1/cotacoes/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def proxy_cotacoes(path: str, request: Request):
+@router.api_route("/api/v1/cotacoes/{path:path}", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
+async def proxy_cotacoes(path: str, request: Request) -> JSONResponse:
     """Roteia requisições para cotacao-service"""
     method = request.method
     body = None

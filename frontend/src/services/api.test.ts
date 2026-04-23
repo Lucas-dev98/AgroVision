@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
-import apiService from './api'
 import { Animal, Pesagem, Cotacao, DashboardData } from '@types/index'
 
-// Mock axios
+// Mock axios before importing apiService
 vi.mock('axios')
 const mockedAxios = axios as any
+
+let apiService: any
 
 const mockAnimal: Animal = {
   id: 1,
@@ -40,7 +41,7 @@ const mockCotacao: Cotacao = {
 }
 
 describe('ApiService', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     mockedAxios.create.mockReturnValue({
       get: vi.fn(),
@@ -52,6 +53,9 @@ describe('ApiService', () => {
         response: { use: vi.fn() },
       },
     })
+    // Import after mocks are configured
+    const module = await import('./api')
+    apiService = module.default
   })
 
   afterEach(() => {
@@ -71,9 +75,8 @@ describe('ApiService', () => {
 
       mockedAxios.create().get.mockResolvedValue(mockResponse)
 
-      // Recreate instance to use mocked axios
-      const testApi = require('./api').default
-      expect(testApi).toBeDefined()
+      // Use the already imported apiService which uses mocked axios
+      expect(apiService).toBeDefined()
     })
 
     it('fetches single animal', async () => {
