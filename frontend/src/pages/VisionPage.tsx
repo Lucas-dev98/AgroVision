@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '@components/atoms/Button'
 import Modal from '@components/molecules/Modal'
+import apiService from '@services/api'
 import '../styles/global.css'
 import '../styles/VisionPage.css'
 
@@ -48,31 +49,17 @@ const VisionPage: React.FC = () => {
 
     setIsLoading(true)
     try {
-      // TODO: Implementar upload e detecção com a API backend
-      // const formData = new FormData()
-      // formData.append('image', selectedImage)
-      // const response = await apiService.detectAnimals(formData)
+      const formData = new FormData()
+      formData.append('image', selectedImage)
       
-      // Simulação para prototipagem
-      const mockResult: DetectionResult = {
-        id: `detect_${Date.now()}`,
-        image_url: preview || '',
-        detections: [
-          {
-            class: 'animal',
-            confidence: 0.95,
-            bbox: [100, 150, 300, 450],
-          },
-        ],
-        created_at: new Date().toISOString(),
-      }
-
-      setDetectionResults([mockResult, ...detectionResults])
+      const result = await apiService.detectAnimals(formData)
+      
+      setDetectionResults([result, ...detectionResults])
       setSelectedImage(null)
       setPreview(null)
-      alert('Detecção realizada! (Simulação)')
+      alert('Detecção realizada com sucesso!')
     } catch (error: any) {
-      alert('Erro na detecção: ' + (error.message || 'Tente novamente'))
+      alert('Erro na detecção: ' + (error.response?.data?.error || error.message || 'Tente novamente'))
       console.error('Erro na detecção:', error)
     } finally {
       setIsLoading(false)

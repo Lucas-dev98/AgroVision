@@ -150,6 +150,71 @@ class ApiService {
   }
 
   /**
+   * Vision Service
+   */
+  async detectAnimals(formData: FormData): Promise<any> {
+    const response = await this.client.post('/vision/detect', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data
+  }
+
+  async getVisionResult(resultId: string): Promise<any> {
+    const response = await this.client.get(`/vision/results/${resultId}`)
+    return response.data
+  }
+
+  async listVisionResults(): Promise<any[]> {
+    const response = await this.client.get('/vision/results')
+    return response.data.results || []
+  }
+
+  /**
+   * ML Service
+   */
+  async getMLModels(): Promise<any[]> {
+    const response = await this.client.get('/ml/models')
+    return response.data.models || []
+  }
+
+  async getMLModel(modelId: string): Promise<any> {
+    const response = await this.client.get(`/ml/models/${modelId}`)
+    return response.data
+  }
+
+  async trainModel(modelId: string, params: {
+    epochs: number
+    batch_size: number
+    learning_rate: number
+  }): Promise<any> {
+    const response = await this.client.post('/ml/train', {
+      model_id: modelId,
+      ...params,
+    })
+    return response.data
+  }
+
+  async predict(modelId: string, input: string): Promise<any> {
+    const response = await this.client.post('/ml/predict', {
+      model_id: modelId,
+      input,
+    })
+    return response.data
+  }
+
+  async getMLPredictions(): Promise<any[]> {
+    const response = await this.client.get('/ml/predictions')
+    return response.data.predictions || []
+  }
+
+  async getMLPrediction(predictionId: string): Promise<any> {
+    const response = await this.client.get(`/ml/predictions/${predictionId}`)
+    return response.data
+  }
+
+  /**
    * Dashboard Aggregation
    */
   async getDashboard(animalId: number): Promise<DashboardData> {

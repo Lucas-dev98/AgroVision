@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '@components/atoms/Button'
 import Modal from '@components/molecules/Modal'
+import apiService from '@services/api'
 import '../styles/global.css'
 import '../styles/MLPage.css'
 
@@ -27,34 +28,7 @@ interface PredictionResult {
 const MLPage: React.FC = () => {
   const navigate = useNavigate()
   
-  const [models, setModels] = useState<MLModel[]>([
-    {
-      id: 'model_1',
-      name: 'Detecção de Anomalias',
-      type: 'anomaly_detection',
-      status: 'active',
-      accuracy: 0.94,
-      last_trained: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      version: '2.1.0',
-    },
-    {
-      id: 'model_2',
-      name: 'Classificação de Comportamento',
-      type: 'behavior_classification',
-      status: 'active',
-      accuracy: 0.88,
-      last_trained: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-      version: '1.5.0',
-    },
-    {
-      id: 'model_3',
-      name: 'Predição de Peso',
-      type: 'prediction',
-      status: 'training',
-      version: '3.0.0-beta',
-    },
-  ])
-
+  const [models, setModels] = useState<MLModel[]>([])
   const [predictions, setPredictions] = useState<PredictionResult[]>([])
   const [selectedModel, setSelectedModel] = useState<MLModel | null>(null)
   const [isTrainingModalOpen, setIsTrainingModalOpen] = useState(false)
@@ -67,6 +41,34 @@ const MLPage: React.FC = () => {
     batch_size: 32,
     learning_rate: 0.001,
   })
+  const [loading, setLoading] = useState(true)
+
+  // Load models and predictions on mount
+  useEffect(() => {
+    loadModels()
+    loadPredictions()
+  }, [])
+
+  const loadModels = async () => {
+    try {
+      const data = await apiService.getMLModels()
+      setModels(data)
+    } catch (error: any) {
+      console.error('Erro ao carregar modelos:', error)
+      alert('Erro ao carregar modelos')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadPredictions = async () => {
+    try {
+      const data = await apiService.getMLPredictions()
+      setPredictions(data)
+    } catch (error: any) {
+      console.error('Erro ao carregar predições:', error)
+    }
+  }
 
   const handleOpenTraining = (model: MLModel) => {
     setSelectedModel(model)
@@ -83,22 +85,25 @@ const MLPage: React.FC = () => {
 
     setIsTraining(true)
     try {
-      // TODO: Implementar chamada para API de treinamento
-      // const response = await apiService.trainModel(selectedModel.id, trainingParams)
+      const result = await apiService.trainModel(selectedModel.id, trainingParams)
       
-      // Simulação para prototipagem
-      alert(`Treinamento iniciado para ${selectedModel.name}! (Simulação)`);
-      
-      // Atualizar status do modelo
+      // Update model status
       setModels(models.map(m => 
         m.id === selectedModel.id 
           ? { ...m, status: 'training' }
           : m
       ))
       
+      alert('Treinamento iniciado! Isso pode levar alguns momentos.')
+      
+      // Refresh models after training completes (simulated delay)
+      setTimeout(() => {
+        loadModels()
+      }, 6000)
+      
       setIsTrainingModalOpen(false)
     } catch (error: any) {
-      alert('Erro ao iniciar treinamento: ' + (error.message || 'Tente novamente'))
+      alert('Erro ao iniciar treinamento: ' + (error.response?.data?.error || error.message || 'Tente novamente'))
       console.error('Erro ao treinar:', error)
     } finally {
       setIsTraining(false)
@@ -113,24 +118,15 @@ const MLPage: React.FC = () => {
 
     setIsPredicting(true)
     try {
-      // TODO: Implementar chamada para API de predição
-      // const response = await apiService.predict(selectedModel.id, { input: predictionInput })
+      const result = await apiService.predict(selectedModel.id, predictionInput)
       
-      // Simulação para prototipagem
-      const mockPrediction: PredictionResult = {
-        id: `pred_${Date.now()}`,
-        model_id: selectedModel.id,
-        input: predictionInput,
-        output: `Resultado simulado para: ${predictionInput}`,
-        confidence: Math.random() * 0.4 + 0.6, // 0.6 - 1.0
-        created_at: new Date().toISOString(),
-      }
-
-      setPredictions([mockPrediction, ...predictions])
+      setPredictions([result, ...predictions])
       setPredictionInput('')
       setIsPredictionModalOpen(false)
+      
+      alert('Predição realizada com sucesso!')
     } catch (error: any) {
-      alert('Erro na predição: ' + (error.message || 'Tente novamente'))
+      alert('Erro na predição: ' + (error.response?.data?.error || error.message || 'Tente novamente'))
       console.error('Erro na predição:', error)
     } finally {
       setIsPredicting(false)
@@ -183,51 +179,61 @@ const MLPage: React.FC = () => {
         {/* Models Section */}
         <section className="ml-section">
           <h2>Modelos Disponíveis</h2>
-          <div className="models-grid">
-            {models.map((model) => (
-              <div key={model.id} className="model-card">
-                <div className="model-header">
-                  <h3>{model.name}</h3>
-                  <span className={`status ${getStatusColor(model.status)}`}>
-                    {model.status === 'active' ? '✓ Ativo' : model.status === 'training' ? '⚙ Treinando' : '✗ Inativo'}
-                  </span>
-                </div>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
+              <p>Carregando modelos...</p>
+            </div>
+          ) : models.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
+              <p>Nenhum modelo disponível</p>
+            </div>
+          ) : (
+            <div className="models-grid">
+              {models.map((model) => (
+                <div key={model.id} className="model-card">
+                  <div className="model-header">
+                    <h3>{model.name}</h3>
+                    <span className={`status ${getStatusColor(model.status)}`}>
+                      {model.status === 'active' ? '✓ Ativo' : model.status === 'training' ? '⚙ Treinando' : '✗ Inativo'}
+                    </span>
+                  </div>
 
-                <div className="model-info">
-                  <p><strong>Tipo:</strong> {getModelTypeLabel(model.type)}</p>
-                  <p><strong>Versão:</strong> {model.version}</p>
-                  {model.accuracy !== undefined && (
-                    <p><strong>Acurácia:</strong> {(model.accuracy * 100).toFixed(1)}%</p>
-                  )}
-                  {model.last_trained && (
-                    <p><strong>Último Treinamento:</strong> {formatDate(model.last_trained)}</p>
-                  )}
-                </div>
+                  <div className="model-info">
+                    <p><strong>Tipo:</strong> {getModelTypeLabel(model.type)}</p>
+                    <p><strong>Versão:</strong> {model.version}</p>
+                    {model.accuracy !== undefined && (
+                      <p><strong>Acurácia:</strong> {(model.accuracy * 100).toFixed(1)}%</p>
+                    )}
+                    {model.last_trained && (
+                      <p><strong>Último Treinamento:</strong> {formatDate(model.last_trained)}</p>
+                    )}
+                  </div>
 
-                <div className="model-actions">
-                  {model.status !== 'inactive' && (
-                    <>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => handleOpenPrediction(model)}
-                        disabled={model.status === 'training'}
-                      >
-                        Fazer Predição
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleOpenTraining(model)}
-                      >
-                        Treinar
-                      </Button>
-                    </>
-                  )}
+                  <div className="model-actions">
+                    {model.status !== 'inactive' && (
+                      <>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleOpenPrediction(model)}
+                          disabled={model.status === 'training'}
+                        >
+                          Fazer Predição
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleOpenTraining(model)}
+                        >
+                          Treinar
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Predictions Section */}
