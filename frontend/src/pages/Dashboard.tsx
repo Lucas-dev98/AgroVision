@@ -150,6 +150,13 @@ function Dashboard() {
               >
                 Ver Pesagens
               </Button>
+              <Button 
+                variant="secondary" 
+                size="md"
+                onClick={() => navigate('/cotacoes')}
+              >
+                Ver Cotações
+              </Button>
             </div>
           </div>
 

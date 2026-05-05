@@ -8,6 +8,7 @@ import ResetPasswordForm from '@components/organisms/ResetPasswordForm'
 import Dashboard from '@pages/Dashboard'
 import AnimalDetailPage from '@pages/AnimalDetailPage'
 import PesagensPage from '@pages/PesagensPage'
+import CotacoesPage from '@pages/CotacoesPage'
 
 /**
  * Componente de rota privada
@@ -113,6 +114,15 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <PesagensPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/cotacoes"
+        element={
+          <PrivateRoute>
+            <CotacoesPage />
           </PrivateRoute>
         }
       />
