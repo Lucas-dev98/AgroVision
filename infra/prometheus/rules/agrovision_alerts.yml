@@ -1,0 +1,173 @@
+# AgroVision Prometheus Alerts
+
+groups:
+  - name: agrovision_alerts
+    interval: 30s
+    rules:
+      # Service Availability Alerts
+      - alert: ServiceDown
+        expr: up{job=~".*-service.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been unavailable for more than 2 minutes."
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: errors
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+
+      # High Latency
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "95th percentile latency is {{ $value }}s on {{ $labels.job }}"
+
+      # Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          container_memory_usage_bytes{container_name=~".*service.*"}
+          / 1024 / 1024 / 1024 > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High memory usage in {{ $labels.container_name }}"
+          description: "Memory usage is {{ $value | humanize }}GB"
+
+      # CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          rate(container_cpu_usage_seconds_total{container_name=~".*service.*"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High CPU usage in {{ $labels.container_name }}"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # Database Connection Pool
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          db_connection_pool_usage{service="vision-service"}
+          / db_connection_pool_max > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "Database connection pool exhausted on {{ $labels.service }}"
+          description: "Connection pool usage is {{ $value | humanizePercentage }}"
+
+      # MongoDB Connection Issues
+      - alert: MongoDBConnectionError
+        expr: |
+          increase(mongodb_connection_errors_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "MongoDB connection errors detected"
+          description: "MongoDB has been experiencing connection errors"
+
+      # YOLO Service Inference Latency
+      - alert: HighYOLOLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(yolo_inference_duration_seconds_bucket[5m])) by (model, le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: ml
+        annotations:
+          summary: "High YOLO inference latency on model {{ $labels.model }}"
+          description: "95th percentile inference time is {{ $value }}s"
+
+      # YOLO Model Accuracy Drop
+      - alert: YOLOAccuracyDrop
+        expr: |
+          (
+            yolo_model_accuracy{status="active"}
+            - yolo_model_accuracy offset 24h
+          ) < -0.05
+        for: 10m
+        labels:
+          severity: warning
+          category: ml_quality
+        annotations:
+          summary: "YOLO model accuracy dropped on {{ $labels.model }}"
+          description: "Accuracy decreased by {{ $value | humanizePercentage }} in 24h"
+
+      # ML Training Failure
+      - alert: MLTrainingFailed
+        expr: |
+          ml_training_status{status="failed"} > 0
+        for: 1m
+        labels:
+          severity: warning
+          category: ml
+        annotations:
+          summary: "ML training job failed"
+          description: "Training job {{ $labels.training_id }} failed with error"
+
+      # Vision Detection Quality
+      - alert: LowDetectionConfidence
+        expr: |
+          avg(vision_detection_confidence[5m]) < 0.60
+        for: 10m
+        labels:
+          severity: warning
+          category: ml_quality
+        annotations:
+          summary: "Low detection confidence in vision service"
+          description: "Average confidence is {{ $value | humanize }}"
+
+      # Redis Memory Usage
+      - alert: RedisMemoryHigh
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      # Request Queue Depth
+      - alert: HighRequestQueueDepth
+        expr: |
+          http_requests_queued{job="vision-service"} > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High request queue depth on {{ $labels.job }}"
+          description: "{{ $value }} requests are queued"

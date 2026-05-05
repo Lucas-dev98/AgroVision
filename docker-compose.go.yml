@@ -65,6 +65,69 @@ services:
     restart: unless-stopped
 
 
+  # ==================== MONITORING (PROMETHEUS + GRAFANA) ====================
+  
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: agrovision-prometheus
+    user: "0"
+    environment:
+      TZ: America/Sao_Paulo
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+      - "--web.enable-admin-api"
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    depends_on:
+      - mongo
+
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: agrovision-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-worldmap-panel"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_PLUGINS_ALLOW_UI_UPDATES: "true"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+
   # ==================== MICROSERVICES (ALL GO) ====================
   
   # Animal Service - Go (porta 8100)
@@ -327,6 +390,10 @@ volumes:
   mongo_data:
     driver: local
   ml_models:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 
