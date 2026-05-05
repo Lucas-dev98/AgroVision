@@ -33,6 +33,7 @@
       "@components/*": ["src/components/*"],
       "@atoms/*": ["src/components/atoms/*"],
       "@organisms/*": ["src/components/organisms/*"],
+      "@context/*": ["src/context/*"],
       "@hooks/*": ["src/hooks/*"],
       "@pages/*": ["src/pages/*"],
       "@services/*": ["src/services/*"],

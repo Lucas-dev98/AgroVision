@@ -1,6 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import useAuth from '@hooks/useAuth'
+import { useAuth } from '@context/AuthContext'
 import LoginForm from '@components/organisms/LoginForm'
 import RegisterForm from '@components/organisms/RegisterForm'
 import ForgotPasswordForm from '@components/organisms/ForgotPasswordForm'

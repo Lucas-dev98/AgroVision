@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/agrovision/api-gateway/internal/config"
+	"github.com/agrovision/api-gateway/internal/handler"
 	"github.com/agrovision/api-gateway/internal/middleware"
 	"github.com/agrovision/api-gateway/internal/proxy"
 	"github.com/gin-gonic/gin"
@@ -46,6 +47,19 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// API v1 routes
 	apiV1 := router.Group("/api/v1")
+
+	// Authentication routes (no middleware required)
+	authHandler := handler.NewAuthHandler()
+	auth := apiV1.Group("/auth")
+	{
+		auth.POST("/login", authHandler.Login)
+		auth.POST("/logout", authHandler.Logout)
+		auth.POST("/refresh", authHandler.Refresh)
+		auth.GET("/profile", middleware.AuthMiddleware(), authHandler.GetProfile)
+	}
+
+	// Protect all other routes with authentication middleware
+	apiV1.Use(middleware.AuthMiddleware())
 
 	// Animal routes
 	animals := apiV1.Group("/animals")

@@ -25,21 +25,46 @@ class ApiService {
   }
 
   /**
+   * Mapear dados da API para o tipo Animal esperado pelo frontend
+   */
+  private mapApiAnimalToAnimal(apiAnimal: any): Animal {
+    return {
+      id: apiAnimal.id,
+      nome: apiAnimal.name,
+      raca: apiAnimal.breed,
+      rfid: apiAnimal.ear_tag,
+      data_nascimento: apiAnimal.birth_date || '',
+      lote_id: apiAnimal.lote_id || 0,
+      status: apiAnimal.status,
+      peso_inicial: apiAnimal.peso_inicial || 0,
+      data_entrada: apiAnimal.created_at,
+      created_at: apiAnimal.created_at,
+      updated_at: apiAnimal.updated_at,
+    }
+  }
+
+  /**
    * Animal Service
    */
   async getAnimals(): Promise<PaginatedResponse<Animal>> {
-    const response = await this.client.get<PaginatedResponse<Animal>>('/animals')
-    return response.data
+    const response = await this.client.get<any>('/animals')
+    const { count, data } = response.data
+    return {
+      items: (data || []).map((animal: any) => this.mapApiAnimalToAnimal(animal)),
+      total: count || 0,
+      page: 1,
+      size: count || 0
+    }
   }
 
   async getAnimal(id: number): Promise<Animal> {
-    const response = await this.client.get<Animal>(`/animals/${id}`)
-    return response.data
+    const response = await this.client.get<any>(`/animals/${id}`)
+    return this.mapApiAnimalToAnimal(response.data)
   }
 
   async getAnimalByRfid(rfid: string): Promise<Animal> {
-    const response = await this.client.get<Animal>(`/animals/rfid/${rfid}`)
-    return response.data
+    const response = await this.client.get<any>(`/animals/rfid/${rfid}`)
+    return this.mapApiAnimalToAnimal(response.data)
   }
 
   async createAnimal(data: Partial<Animal>): Promise<Animal> {

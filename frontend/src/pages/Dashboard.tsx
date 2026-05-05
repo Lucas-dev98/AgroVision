@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAnimals } from '@hooks/useAnimals'
-import useAuth from '@hooks/useAuth'
+import { useAuth } from '@context/AuthContext'
 import Button from '@components/atoms/Button'
 import Card from '@components/atoms/Card'
 import Modal from '@components/molecules/Modal'

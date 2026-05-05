@@ -198,8 +198,7 @@ const LoginForm: React.FC = () => {
               placeholder="Ex: 123.456.789-01"
               value={cpfCnpj}
               onChange={e => handleInputChange('cpf_cnpj', e.target.value)}
-              error={!!errors.cpf_cnpj}
-              errorMessage={errors.cpf_cnpj}
+              error={errors.cpf_cnpj}
               disabled={loading || mfa.mfaLoading}
             />
           </div>
@@ -214,8 +213,7 @@ const LoginForm: React.FC = () => {
               placeholder="Digite sua senha"
               value={password}
               onChange={e => handleInputChange('password', e.target.value)}
-              error={!!errors.password}
-              errorMessage={errors.password}
+              error={errors.password}
               disabled={loading || mfa.mfaLoading}
             />
           </div>
