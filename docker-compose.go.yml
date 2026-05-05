@@ -154,6 +154,54 @@ services:
     restart: unless-stopped
 
 
+  # Vision Service - Go (porta 8103)
+  vision-service:
+    build:
+      context: ./services/vision_service_go
+      dockerfile: Dockerfile
+    container_name: agrovision-vision-service-go
+    environment:
+      VISION_SERVICE_PORT: 8003
+      VISION_SERVICE_HOSTNAME: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: production
+    ports:
+      - "${VISION_SERVICE_PORT:-8103}:8003"
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # ML Service - Go (porta 8104)
+  ml-service:
+    build:
+      context: ./services/ml_service_go
+      dockerfile: Dockerfile
+    container_name: agrovision-ml-service-go
+    environment:
+      ML_SERVICE_PORT: 8004
+      ML_SERVICE_HOSTNAME: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: production
+    ports:
+      - "${ML_SERVICE_PORT:-8104}:8004"
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
   # API Gateway - Go (porta 8000)
   api-gateway:
     build:
@@ -164,6 +212,8 @@ services:
       ANIMAL_SERVICE_URL: http://animal-service:8000
       PESAGEM_SERVICE_URL: http://pesagem-service:8001
       COTACAO_SERVICE_URL: http://cotacao-service:8002
+      VISION_SERVICE_URL: http://vision-service:8003
+      ML_SERVICE_URL: http://ml-service:8004
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       REDIS_URL: redis://redis:6379/3
       PORT: 8080
@@ -175,6 +225,8 @@ services:
       - animal-service
       - pesagem-service
       - cotacao-service
+      - vision-service
+      - ml-service
     networks:
       - agrovision
     healthcheck:
