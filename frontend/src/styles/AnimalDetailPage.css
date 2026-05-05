@@ -118,6 +118,39 @@
   color: #e17055;
 }
 
+/* Stats Section */
+.animal-detail-page__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-item label {
+  font-weight: 600;
+  color: #7f8c8d;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-item p {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
 .animal-detail-page__actions {
   display: flex;
   gap: 1rem;
@@ -127,6 +160,73 @@
 
 .animal-detail-page__actions button {
   flex: 1;
+}
+
+/* Pesagens Section */
+.animal-detail-page__pesagens {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid #ecf0f1;
+}
+
+.pesagens-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.pesagens-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.pesagens-empty {
+  padding: 2rem;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #7f8c8d;
+}
+
+.pesagens-table {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.pesagens-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pesagens-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.pesagens-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.pesagens-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #ecf0f1;
+  color: #34495e;
+}
+
+.pesagens-table tbody tr:hover {
+  background: #f8f9fa;
 }
 
 .animal-detail-page__edit-form {
@@ -160,6 +260,77 @@
   flex: 1;
 }
 
+/* Pesagem Form */
+.pesagem-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid #ecf0f1;
+}
+
+.form-actions button {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ecf0f1;
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 768px) {
   .animal-detail-page {
     padding: 1rem;
@@ -180,7 +351,34 @@
     gap: 1rem;
   }
 
+  .animal-detail-page__stats {
+    grid-template-columns: 1fr;
+  }
+
   .animal-detail-page__actions {
     flex-direction: column;
+  }
+
+  .pesagens-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pesagens-table th,
+  .pesagens-table td {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    max-width: 100%;
   }
 }
