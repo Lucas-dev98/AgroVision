@@ -217,6 +217,41 @@ services:
           memory: 1G
 
 
+  # ML Training Service - Python (porta 8106)
+  ml-training-service:
+    build:
+      context: ./services/ml_training_service_python
+      dockerfile: Dockerfile
+    container_name: agrovision-ml-training-service-python
+    environment:
+      PORT: 8106
+      HOST: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      MODELS_DIR: /tmp/ml_models
+      TF_CPP_MIN_LOG_LEVEL: 2
+    ports:
+      - "${ML_TRAINING_SERVICE_PORT:-8106}:8106"
+    volumes:
+      - ml_models:/tmp/ml_models
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8106/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+
+
   # ML Service - Go (porta 8104)
   ml-service:
     build:
@@ -226,10 +261,16 @@ services:
     environment:
       ML_SERVICE_PORT: 8004
       ML_SERVICE_HOSTNAME: 0.0.0.0
+      MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision?authSource=admin
+      MONGODB_DATABASE: agrovision
+      JWT_SECRET: ${JWT_SECRET:-production-secret-key}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: production
     ports:
       - "${ML_SERVICE_PORT:-8104}:8004"
+    depends_on:
+      mongo:
+        condition: service_healthy
     networks:
       - agrovision
     healthcheck:
@@ -284,6 +325,8 @@ volumes:
   redis_data:
     driver: local
   mongo_data:
+    driver: local
+  ml_models:
     driver: local
 
 

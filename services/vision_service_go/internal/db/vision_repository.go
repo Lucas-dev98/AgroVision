@@ -89,7 +89,7 @@ func (r *VisionDetectionRepository) ListByUser(ctx context.Context, userID strin
 		SetSkip(skip)
 
 	cursor, err := r.collection.Find(ctx, bson.M{
-		"user_id":   userID,
+		"user_id":    userID,
 		"deleted_at": nil,
 	}, opts)
 	if err != nil {
@@ -156,7 +156,7 @@ func (r *VisionDetectionRepository) SearchByClass(ctx context.Context, class str
 // CountByUser counts detections for a user
 func (r *VisionDetectionRepository) CountByUser(ctx context.Context, userID string) (int64, error) {
 	count, err := r.collection.CountDocuments(ctx, bson.M{
-		"user_id":   userID,
+		"user_id":    userID,
 		"deleted_at": nil,
 	})
 	if err != nil {
@@ -192,18 +192,18 @@ func (r *VisionDetectionRepository) GetStatistics(ctx context.Context, userID st
 	pipeline := mongo.Pipeline{
 		bson.D{
 			{Key: "$match", Value: bson.M{
-				"user_id":   userID,
+				"user_id":    userID,
 				"deleted_at": nil,
 			}},
 		},
 		bson.D{
 			{Key: "$group", Value: bson.M{
-				"_id":           nil,
+				"_id":              nil,
 				"total_detections": bson.M{"$sum": 1},
 				"avg_confidence": bson.M{"$avg": bson.M{
 					"$avg": "$detections.confidence",
 				}},
-				"models_used": bson.M{"$addToSet": "$model_used"},
+				"models_used":   bson.M{"$addToSet": "$model_used"},
 				"total_animals": bson.M{"$sum": bson.M{"$size": "$detections"}},
 			}},
 		},

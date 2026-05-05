@@ -1,14 +1,17 @@
 package handler
-package handler
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/agrovision/ml-service/internal/db"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type MLModel struct {
@@ -43,14 +46,35 @@ type PredictionRequest struct {
 }
 
 type MLHandler struct {
-	models      map[string]*MLModel
-	predictions map[string]*PredictionResult
+	models              map[string]*MLModel
+	predictions         map[string]*PredictionResult
+	mongoConnection     *db.MongoConnection
+	predictionRepo      *db.MLPredictionRepository
+	trainingHistoryRepo *db.MLTrainingRepository
 }
 
-func NewMLHandler() *MLHandler {
+func NewMLHandler(mongoConnection *db.MongoConnection) *MLHandler {
 	handler := &MLHandler{
-		models:      make(map[string]*MLModel),
-		predictions: make(map[string]*PredictionResult),
+		models:          make(map[string]*MLModel),
+		predictions:     make(map[string]*PredictionResult),
+		mongoConnection: mongoConnection,
+	}
+
+	// Initialize repositories if MongoDB is available
+	if mongoConnection != nil {
+		handler.predictionRepo = &db.MLPredictionRepository{
+			Collection: mongoConnection.DB.Collection("ml_predictions"),
+		}
+		handler.trainingHistoryRepo = &db.MLTrainingRepository{
+			Collection: mongoConnection.DB.Collection("ml_training_history"),
+		}
+
+		// Create indices
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		handler.predictionRepo.CreateIndices(ctx)
+		handler.trainingHistoryRepo.CreateIndices(ctx)
 	}
 
 	// Initialize with mock models
@@ -142,32 +166,70 @@ func (h *MLHandler) Train(c *gin.Context) {
 		return
 	}
 
+	// Extract user_id from context (from JWT)
+	userID := c.GetString("user_id")
+
 	// Update model status to training
 	oldStatus := model.Status
 	model.Status = "training"
 
-	// Simulate training (in production, this would actually train the model)
+	// Create training history record
+	trainingID := uuid.New().String()
+	trainingRecord := &db.MLTrainingHistory{
+		TrainingID: trainingID,
+		ModelID:    req.ModelID,
+		Status:     "training",
+		Parameters: map[string]interface{}{
+			"epochs":        req.Epochs,
+			"batch_size":    req.BatchSize,
+			"learning_rate": req.LearningRate,
+		},
+		UserID:    userID,
+		StartedAt: time.Now(),
+	}
+
+	// Save to MongoDB if available
+	if h.trainingHistoryRepo != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		h.trainingHistoryRepo.Save(ctx, trainingRecord)
+		cancel()
+	}
+
+	// Simulate training in background
 	go func() {
-		time.Sleep(5 * time.Second) // Simulate training time
+		time.Sleep(5 * time.Second)
 
 		// Update status and accuracy after training
 		now := time.Now().UTC().Format(time.RFC3339)
-		accuracy := 0.85 + rand.Float64()*0.15 // Random accuracy 0.85-1.0
+		accuracy := 0.85 + rand.Float64()*0.15
 
 		model.Status = "active"
 		model.Accuracy = &accuracy
 		model.LastTrained = &now
-		// Increment version patch
-		// For simplicity, we're just leaving it as is in this mock
+
+		// Update training record in MongoDB
+		if h.trainingHistoryRepo != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			trainingRecord.Status = "completed"
+			trainingRecord.CompletedAt = time.Now()
+			trainingRecord.Metrics = map[string]interface{}{
+				"accuracy": accuracy,
+				"loss":     0.05 + rand.Float64()*0.1,
+			}
+			trainingRecord.DurationSeconds = int64(time.Since(trainingRecord.StartedAt).Seconds())
+			h.trainingHistoryRepo.UpdateStatus(ctx, trainingRecord.TrainingID, trainingRecord)
+			cancel()
+		}
 	}()
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":    "Training started",
-		"model_id":   req.ModelID,
-		"old_status": oldStatus,
-		"new_status": model.Status,
-		"epochs":     req.Epochs,
-		"batch_size": req.BatchSize,
+		"message":      "Training started",
+		"training_id":  trainingID,
+		"model_id":     req.ModelID,
+		"old_status":   oldStatus,
+		"new_status":   model.Status,
+		"epochs":       req.Epochs,
+		"batch_size":   req.BatchSize,
 		"learning_rate": req.LearningRate,
 	})
 }
@@ -197,9 +259,18 @@ func (h *MLHandler) Predict(c *gin.Context) {
 		return
 	}
 
+	// Extract user_id from context (from JWT)
+	userID := c.GetString("user_id")
+	animalID := c.Query("animal_id")
+
+	// Measure prediction time
+	startTime := time.Now()
+
 	// Simulate prediction
 	output := fmt.Sprintf("Resultado simulado para: %s (usando %s v%s)", req.Input, model.Name, model.Version)
-	confidence := 0.60 + rand.Float64()*0.40 // Random confidence 0.60-1.0
+	confidence := 0.60 + rand.Float64()*0.40
+
+	processingTimeMS := int(time.Since(startTime).Milliseconds())
 
 	// Create prediction result
 	result := &PredictionResult{
@@ -211,8 +282,26 @@ func (h *MLHandler) Predict(c *gin.Context) {
 		CreatedAt:  time.Now().UTC().Format(time.RFC3339),
 	}
 
-	// Store result
+	// Store in in-memory cache
 	h.predictions[result.ID] = result
+
+	// Save to MongoDB if available
+	if h.predictionRepo != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		prediction := &db.MLPrediction{
+			PredictionID:    result.ID,
+			ModelID:         req.ModelID,
+			Input:           map[string]interface{}{"raw": req.Input},
+			Output:          map[string]interface{}{"result": output},
+			Confidence:      confidence,
+			ProcessingTimeMS: processingTimeMS,
+			UserID:          userID,
+			AnimalID:        animalID,
+			CreatedAt:       time.Now(),
+		}
+		h.predictionRepo.Save(ctx, prediction)
+		cancel()
+	}
 
 	c.JSON(http.StatusOK, result)
 }
@@ -245,10 +334,143 @@ func (h *MLHandler) GetPrediction(c *gin.Context) {
 	c.JSON(http.StatusOK, prediction)
 }
 
+// GetPredictionHistory returns user's prediction history from MongoDB
+func (h *MLHandler) GetPredictionHistory(c *gin.Context) {
+	if h.predictionRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "MongoDB not configured",
+		})
+		return
+	}
+
+	userID := c.GetString("user_id")
+	limitStr := c.Query("limit")
+	skipStr := c.Query("skip")
+
+	limit := int64(20)
+	skip := int64(0)
+
+	if l, err := strconv.ParseInt(limitStr, 10, 64); err == nil {
+		limit = l
+	}
+	if s, err := strconv.ParseInt(skipStr, 10, 64); err == nil {
+		skip = s
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	predictions, err := h.predictionRepo.ListByUser(ctx, userID, limit, skip)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch predictions",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"predictions": predictions,
+		"limit":       limit,
+		"skip":        skip,
+	})
+}
+
+// GetTrainingHistory returns user's training history from MongoDB
+func (h *MLHandler) GetTrainingHistory(c *gin.Context) {
+	if h.trainingHistoryRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "MongoDB not configured",
+		})
+		return
+	}
+
+	userID := c.GetString("user_id")
+	limitStr := c.Query("limit")
+	skipStr := c.Query("skip")
+
+	limit := int64(20)
+	skip := int64(0)
+
+	if l, err := strconv.ParseInt(limitStr, 10, 64); err == nil {
+		limit = l
+	}
+	if s, err := strconv.ParseInt(skipStr, 10, 64); err == nil {
+		skip = s
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trainings, err := h.trainingHistoryRepo.ListByUser(ctx, userID, limit, skip)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch training history",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"trainings": trainings,
+		"limit":     limit,
+		"skip":      skip,
+	})
+}
+
+// GetTrainingHistoryByModel returns training history for specific model
+func (h *MLHandler) GetTrainingHistoryByModel(c *gin.Context) {
+	if h.trainingHistoryRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "MongoDB not configured",
+		})
+		return
+	}
+
+	modelID := c.Param("model_id")
+	limitStr := c.Query("limit")
+	skipStr := c.Query("skip")
+
+	limit := int64(20)
+	skip := int64(0)
+
+	if l, err := strconv.ParseInt(limitStr, 10, 64); err == nil {
+		limit = l
+	}
+	if s, err := strconv.ParseInt(skipStr, 10, 64); err == nil {
+		skip = s
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trainings, err := h.trainingHistoryRepo.ListByModel(ctx, modelID, limit, skip)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch training history",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"trainings": trainings,
+		"limit":     limit,
+		"skip":      skip,
+	})
+}
+
 // Health check
 func (h *MLHandler) Health(c *gin.Context) {
+	mongoStatus := "ok"
+	if h.mongoConnection != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		if err := h.mongoConnection.Health(ctx); err != nil {
+			mongoStatus = "error"
+		}
+		cancel()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
 		"service": "ml-service",
+		"mongodb": mongoStatus,
 	})
 }
