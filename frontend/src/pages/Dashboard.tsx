@@ -135,13 +135,22 @@ function Dashboard() {
         <section>
           <div className="section-header">
             <h2>Animais</h2>
-            <Button 
-              variant="primary" 
-              size="md"
-              onClick={() => setIsModalOpen(true)}
-            >
-              Adicionar Animal
-            </Button>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <Button 
+                variant="primary" 
+                size="md"
+                onClick={() => setIsModalOpen(true)}
+              >
+                Adicionar Animal
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="md"
+                onClick={() => navigate('/pesagens')}
+              >
+                Ver Pesagens
+              </Button>
+            </div>
           </div>
 
           {/* Barra de Busca por RFID */}
