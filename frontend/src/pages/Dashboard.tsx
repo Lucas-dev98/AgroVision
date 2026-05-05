@@ -19,6 +19,7 @@ function Dashboard() {
   const [isHealthy, setIsHealthy] = useState<boolean | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
 
   useEffect(() => {
     apiService.healthCheck().then(setIsHealthy)
@@ -53,6 +54,17 @@ function Dashboard() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
+  }
+
+  const handleDeleteAnimal = async (id: number) => {
+    try {
+      await apiService.deleteAnimal(id)
+      setDeleteConfirmId(null)
+      refetch?.()
+    } catch (err) {
+      console.error('Erro ao deletar animal:', err)
+      alert('Erro ao deletar animal. Tente novamente.')
+    }
   }
 
   return (
@@ -134,7 +146,12 @@ function Dashboard() {
                     <Button variant="secondary" size="sm" fullWidth>
                       Detalhes
                     </Button>
-                    <Button variant="danger" size="sm" fullWidth>
+                    <Button 
+                      variant="danger" 
+                      size="sm" 
+                      fullWidth
+                      onClick={() => setDeleteConfirmId(animal.id)}
+                    >
                       Deletar
                     </Button>
                   </div>
@@ -156,6 +173,21 @@ function Dashboard() {
             onCancel={handleCloseModal}
             isSubmitting={isSubmitting}
           />
+        </Modal>
+
+        {/* Modal de confirmação de exclusão */}
+        <Modal
+          isOpen={deleteConfirmId !== null}
+          title="Confirmar Exclusão"
+          onClose={() => setDeleteConfirmId(null)}
+          onConfirm={() => deleteConfirmId && handleDeleteAnimal(deleteConfirmId)}
+          variant="confirmation"
+          isDanger={true}
+          size="small"
+        >
+          <p>
+            Tem certeza que deseja deletar este animal? Esta ação não pode ser desfeita.
+          </p>
         </Modal>
       </main>
     </div>
