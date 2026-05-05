@@ -17,6 +17,24 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Create users table (MUST BE FIRST)
+    op.create_table(
+        'users',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('username', sa.String(100), nullable=False, unique=True),
+        sa.Column('email', sa.String(100), nullable=False, unique=True),
+        sa.Column('password_hash', sa.String(255), nullable=False),
+        sa.Column('full_name', sa.String(100), nullable=True),
+        sa.Column('role', sa.String(20), nullable=False, server_default='user'),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
+        sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.func.current_timestamp()),
+        sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.func.current_timestamp()),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('username'),
+        sa.UniqueConstraint('email'),
+        sa.CheckConstraint("role IN ('admin', 'operator', 'viewer', 'user')")
+    )
+
     # Create animais table
     op.create_table(
         'animais',
@@ -106,6 +124,9 @@ def upgrade() -> None:
     )
 
     # Create indexes
+    op.create_index('idx_users_username', 'users', ['username'])
+    op.create_index('idx_users_email', 'users', ['email'])
+    op.create_index('idx_users_is_active', 'users', ['is_active'])
     op.create_index('idx_animais_rfid', 'animais', ['rfid'])
     op.create_index('idx_animais_status', 'animais', ['status'])
     op.create_index('idx_pesagens_animal_id', 'pesagens', ['animal_id'])
@@ -126,6 +147,9 @@ def downgrade() -> None:
     op.drop_index('idx_pesagens_animal_id', 'pesagens')
     op.drop_index('idx_animais_status', 'animais')
     op.drop_index('idx_animais_rfid', 'animais')
+    op.drop_index('idx_users_is_active', 'users')
+    op.drop_index('idx_users_email', 'users')
+    op.drop_index('idx_users_username', 'users')
 
     # Drop tables
     op.drop_table('cotacoes')
@@ -134,3 +158,4 @@ def downgrade() -> None:
     op.drop_table('pesagens')
     op.drop_table('lotes')
     op.drop_table('animais')
+    op.drop_table('users')

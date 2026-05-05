@@ -1,13 +1,19 @@
 package handler
 
 import (
+	"database/sql"
 	"net/http"
+
+	"agrovision/services/api_gateway_go/internal/repository"
+	"agrovision/services/api_gateway_go/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-type AuthHandler struct{}
+type AuthHandler struct {
+	userRepo *repository.UserRepository
+}
 
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
@@ -23,7 +29,7 @@ type LoginResponse struct {
 }
 
 type User struct {
-	ID       string `json:"id"`
+	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 }
@@ -39,11 +45,13 @@ type RefreshResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 }
 
-func NewAuthHandler() *AuthHandler {
-	return &AuthHandler{}
+func NewAuthHandler(db *sql.DB) *AuthHandler {
+	return &AuthHandler{
+		userRepo: repository.NewUserRepository(db),
+	}
 }
 
-// Login endpoint - returns a Bearer token for API access
+// Login endpoint - validates credentials against database and returns a Bearer token
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 
@@ -54,7 +62,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// For development: accept any non-empty username/password
+	// Validate input
 	if req.Username == "" || req.Password == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid credentials",
@@ -62,7 +70,24 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Generate simple tokens (in production, use proper JWT)
+	// Get user from database
+	user, err := h.userRepo.GetByUsername(req.Username)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid credentials",
+		})
+		return
+	}
+
+	// Verify password
+	if !utils.VerifyPassword(req.Password, user.PasswordHash) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid credentials",
+		})
+		return
+	}
+
+	// Generate tokens
 	accessToken := uuid.New().String()
 	refreshToken := uuid.New().String()
 	expiresIn := 86400 // 24 hours in seconds
@@ -73,9 +98,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		TokenType:    "Bearer",
 		ExpiresIn:    expiresIn,
 		User: User{
-			ID:       uuid.New().String(),
-			Username: req.Username,
-			Email:    req.Username + "@agrovision.local",
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
 		},
 	}
 
@@ -125,11 +150,13 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 
 // GetProfile endpoint - returns current user profile
 func (h *AuthHandler) GetProfile(c *gin.Context) {
+	// In a real implementation, extract user ID from JWT token
+	// For now, return a sample user
 	c.JSON(http.StatusOK, gin.H{
 		"user": User{
-			ID:       uuid.New().String(),
-			Username: "user",
-			Email:    "user@agrovision.local",
+			ID:       1,
+			Username: "admin",
+			Email:    "admin@agrovision.local",
 		},
 	})
 }
