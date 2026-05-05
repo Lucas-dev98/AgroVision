@@ -6,6 +6,7 @@ import Button from '@components/atoms/Button'
 import Card from '@components/atoms/Card'
 import Modal from '@components/molecules/Modal'
 import AnimalForm from '@components/molecules/AnimalForm'
+import SearchBar from '@components/molecules/SearchBar'
 import apiService from '@services/api'
 import logoImg from '../assets/agrovision-logo.jpg'
 import '../styles/global.css'
@@ -20,6 +21,10 @@ function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [hasSearched, setHasSearched] = useState(false)
 
   useEffect(() => {
     apiService.healthCheck().then(setIsHealthy)
@@ -67,6 +72,34 @@ function Dashboard() {
     }
   }
 
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    setHasSearched(true)
+
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      // Buscar por RFID na API
+      const animal = await apiService.getAnimalByRfid(query)
+      setSearchResults([animal])
+    } catch (err) {
+      console.error('Erro ao buscar animal por RFID:', err)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    setSearchResults([])
+    setHasSearched(false)
+  }
+
   return (
     <div className="app-container">
       <header>
@@ -111,6 +144,27 @@ function Dashboard() {
             </Button>
           </div>
 
+          {/* Barra de Busca por RFID */}
+          <div style={{ marginBottom: '20px' }}>
+            <SearchBar
+              placeholder="Buscar por RFID (ex: RF12345678)..."
+              onSearch={handleSearch}
+              loading={isSearching}
+            />
+            {hasSearched && searchQuery && (
+              <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span>Resultados para: <strong>{searchQuery}</strong></span>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={handleClearSearch}
+                >
+                  Limpar
+                </Button>
+              </div>
+            )}
+          </div>
+
           {loading && (
             <div className="loading">
               <p>Carregando animais...</p>
@@ -123,14 +177,27 @@ function Dashboard() {
             </div>
           )}
 
-          {!loading && animals.length === 0 && !error && (
+          {hasSearched && searchQuery && isSearching && (
+            <div className="loading">
+              <p>Buscando animal...</p>
+            </div>
+          )}
+
+          {hasSearched && searchQuery && !isSearching && searchResults.length === 0 && (
+            <div className="empty-state">
+              <p>Nenhum animal encontrado com RFID: {searchQuery}</p>
+            </div>
+          )}
+
+          {!hasSearched && !loading && animals.length === 0 && !error && (
             <div className="empty-state">
               <p>Nenhum animal encontrado</p>
             </div>
           )}
 
+          {/* Mostrar resultados de busca ou lista completa */}
           <div className="animals-grid">
-            {animals.map((animal) => (
+            {(hasSearched && searchQuery ? searchResults : animals).map((animal) => (
               <Card 
                 key={animal.id}
                 title={animal.nome}
