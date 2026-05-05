@@ -4,6 +4,8 @@ import { useAnimals } from '@hooks/useAnimals'
 import useAuth from '@hooks/useAuth'
 import Button from '@components/atoms/Button'
 import Card from '@components/atoms/Card'
+import Modal from '@components/molecules/Modal'
+import AnimalForm from '@components/molecules/AnimalForm'
 import apiService from '@services/api'
 import logoImg from '../assets/agrovision-logo.jpg'
 import '../styles/global.css'
@@ -11,10 +13,12 @@ import '../styles/app-layout.css'
 import '../styles/App.css'
 
 function Dashboard() {
-  const { animals, loading, error } = useAnimals()
+  const { animals, loading, error, refetch } = useAnimals()
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [isHealthy, setIsHealthy] = useState<boolean | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     apiService.healthCheck().then(setIsHealthy)
@@ -31,6 +35,24 @@ function Dashboard() {
       localStorage.removeItem('refresh_token')
       navigate('/login', { replace: true })
     }
+  }
+
+  const handleCreateAnimal = async (animalData: any) => {
+    setIsSubmitting(true)
+    try {
+      await apiService.createAnimal(animalData)
+      setIsModalOpen(false)
+      refetch?.()
+    } catch (err) {
+      console.error('Erro ao criar animal:', err)
+      alert('Erro ao criar animal. Tente novamente.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
   }
 
   return (
@@ -68,7 +90,11 @@ function Dashboard() {
         <section>
           <div className="section-header">
             <h2>Animais</h2>
-            <Button variant="primary" size="md">
+            <Button 
+              variant="primary" 
+              size="md"
+              onClick={() => setIsModalOpen(true)}
+            >
               Adicionar Animal
             </Button>
           </div>
@@ -117,6 +143,20 @@ function Dashboard() {
             ))}
           </div>
         </section>
+
+        {/* Modal para criar novo animal */}
+        <Modal
+          isOpen={isModalOpen}
+          title="Registrar Novo Animal"
+          onClose={handleCloseModal}
+          size="large"
+        >
+          <AnimalForm
+            onSubmit={handleCreateAnimal}
+            onCancel={handleCloseModal}
+            isSubmitting={isSubmitting}
+          />
+        </Modal>
       </main>
     </div>
   )
