@@ -8,8 +8,10 @@ import (
 )
 
 type Config struct {
-	Port     int
-	Hostname string
+	Port      int
+	Hostname  string
+	MongoURI  string
+	MongoDBName string
 }
 
 func Load() (*Config, error) {
@@ -26,12 +28,24 @@ func Load() (*Config, error) {
 		hostname = "0.0.0.0"
 	}
 
+	mongoURI := os.Getenv("MONGODB_URI")
+	if mongoURI == "" {
+		mongoURI = "mongodb://localhost:27017"
+	}
+
+	mongoDBName := os.Getenv("MONGODB_DATABASE")
+	if mongoDBName == "" {
+		mongoDBName = "agrovision"
+	}
+
 	return &Config{
-		Port:     port,
-		Hostname: hostname,
+		Port:       port,
+		Hostname:   hostname,
+		MongoURI:   mongoURI,
+		MongoDBName: mongoDBName,
 	}, nil
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("VisionService on %s:%d", c.Hostname, c.Port)
+	return fmt.Sprintf("VisionService on %s:%d (MongoDB: %s)", c.Hostname, c.Port, c.MongoURI)
 }

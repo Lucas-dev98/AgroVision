@@ -166,10 +166,15 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: production
       YOLO_SERVICE_URL: http://vision-yolo-service:8005
+      MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision?authSource=admin
+      MONGODB_DATABASE: agrovision
     ports:
       - "${VISION_SERVICE_PORT:-8103}:8003"
     depends_on:
-      - vision-yolo-service
+      mongo:
+        condition: service_healthy
+      vision-yolo-service:
+        condition: service_healthy
     networks:
       - agrovision
     healthcheck:
