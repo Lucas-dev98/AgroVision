@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios'
 import { Animal, Pesagem, Cotacao, DashboardData, PaginatedResponse } from '@types/index'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
 class ApiService {
   private client: AxiosInstance
@@ -28,36 +28,61 @@ class ApiService {
    * Animal Service
    */
   async getAnimals(): Promise<PaginatedResponse<Animal>> {
-    const response = await this.client.get<PaginatedResponse<Animal>>('/animais')
+    const response = await this.client.get<PaginatedResponse<Animal>>('/animals')
     return response.data
   }
 
   async getAnimal(id: number): Promise<Animal> {
-    const response = await this.client.get<Animal>(`/animais/${id}`)
+    const response = await this.client.get<Animal>(`/animals/${id}`)
+    return response.data
+  }
+
+  async getAnimalByRfid(rfid: string): Promise<Animal> {
+    const response = await this.client.get<Animal>(`/animals/rfid/${rfid}`)
     return response.data
   }
 
   async createAnimal(data: Partial<Animal>): Promise<Animal> {
-    const response = await this.client.post<Animal>('/animais', data)
+    const response = await this.client.post<Animal>('/animals', data)
     return response.data
   }
 
   async updateAnimal(id: number, data: Partial<Animal>): Promise<Animal> {
-    const response = await this.client.put<Animal>(`/animais/${id}`, data)
+    const response = await this.client.put<Animal>(`/animals/${id}`, data)
     return response.data
   }
 
   async deleteAnimal(id: number): Promise<void> {
-    await this.client.delete(`/animais/${id}`)
+    await this.client.delete(`/animals/${id}`)
   }
 
   /**
    * Pesagem Service
    */
-  async getPesagens(animalId: number): Promise<Pesagem[]> {
-    const response = await this.client.get<Pesagem[]>(`/pesagens`, {
-      params: { animal_id: animalId },
+  async getPesagens(animalId?: number): Promise<Pesagem[]> {
+    const response = await this.client.get<Pesagem[]>('/pesagens', {
+      params: animalId ? { animal_id: animalId } : {},
     })
+    return response.data
+  }
+
+  async getPesagem(id: number): Promise<Pesagem> {
+    const response = await this.client.get<Pesagem>(`/pesagens/${id}`)
+    return response.data
+  }
+
+  async getPesagemHistorico(animalId: number): Promise<Pesagem[]> {
+    const response = await this.client.get<Pesagem[]>(`/pesagens/animal/${animalId}/historico`)
+    return response.data
+  }
+
+  async getPesagemUltima(animalId: number): Promise<Pesagem> {
+    const response = await this.client.get<Pesagem>(`/pesagens/animal/${animalId}/ultima`)
+    return response.data
+  }
+
+  async getPesagemGanho(animalId: number): Promise<{ ganho_kg: number; periodo_dias: number }> {
+    const response = await this.client.get<{ ganho_kg: number; periodo_dias: number }>(`/pesagens/animal/${animalId}/ganho`)
     return response.data
   }
 
@@ -76,6 +101,26 @@ class ApiService {
 
   async getCotacao(id: number): Promise<Cotacao> {
     const response = await this.client.get<Cotacao>(`/cotacoes/${id}`)
+    return response.data
+  }
+
+  async getCotacaoAtual(): Promise<Cotacao> {
+    const response = await this.client.get<Cotacao>('/cotacoes/atual')
+    return response.data
+  }
+
+  async getCotacaoMedia(): Promise<{ preco_medio: number; periodo_dias: number }> {
+    const response = await this.client.get<{ preco_medio: number; periodo_dias: number }>('/cotacoes/media')
+    return response.data
+  }
+
+  async getCotacaoHistorico(): Promise<Cotacao[]> {
+    const response = await this.client.get<Cotacao[]>('/cotacoes/historico')
+    return response.data
+  }
+
+  async createCotacao(data: Partial<Cotacao>): Promise<Cotacao> {
+    const response = await this.client.post<Cotacao>('/cotacoes', data)
     return response.data
   }
 
