@@ -1,0 +1,251 @@
+services:
+  # ==================== DATABASE ====================
+  db:
+    image: postgres:16-alpine
+    container_name: agrovision-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-agrovision}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-agrovision}
+      POSTGRES_DB: ${DB_NAME:-agrovision}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-agrovision}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+  # ==================== CACHE (REDIS) ====================
+  redis:
+    image: redis:7-alpine
+    container_name: agrovision-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+
+  # ==================== MONGODB (Vision Service) ====================
+  mongo:
+    image: mongo:7
+    container_name: agrovision-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
+      MONGO_INITDB_DATABASE: agrovision_vision
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # ==================== MICROSERVICES ====================
+  
+  # Animal Service - Cattle Inventory Management (porta 8000)
+  animal-service:
+    build:
+      context: .
+      dockerfile: services/animal_service/Dockerfile
+    container_name: agrovision-animal-service
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/0
+      ANIMAL_SERVICE_PORT: 8000
+    ports:
+      - "${ANIMAL_SERVICE_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Pesagem Service - Cattle Weighing Records (porta 8001)
+  pesagem-service:
+    build:
+      context: .
+      dockerfile: services/pesagem_service/Dockerfile
+    container_name: agrovision-pesagem-service
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/1
+    ports:
+      - "${PESAGEM_SERVICE_PORT:-8001}:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Cotacao Service - Cattle Pricing (porta 8002)
+  cotacao-service:
+    build:
+      context: .
+      dockerfile: services/cotacao_service/Dockerfile
+    container_name: agrovision-cotacao-service
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/2
+    ports:
+      - "${COTACAO_SERVICE_PORT:-8002}:8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Vision Service - Computer Vision & Cattle Detection (porta 8003)
+  # TEMPORARIAMENTE DESABILITADO - Problemas com dependências OpenCV
+  # vision-service:
+  #   build:
+  #     context: .
+  #     dockerfile: services/vision_service/Dockerfile
+  #   container_name: agrovision-vision-service
+  #   environment:
+  #     MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_vision?authSource=admin
+  #     MONGODB_DB: agrovision_vision
+  #     YOLO_MODEL: yolov8n.pt
+  #     YOLO_CONFIDENCE: ${YOLO_CONFIDENCE:-0.5}
+  #     MAX_FRAME_SIZE_MB: 10
+  #     LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  #   ports:
+  #     - "${VISION_SERVICE_PORT:-8003}:8003"
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #   networks:
+  #     - agrovision
+  #   healthcheck:
+  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 20s
+  #   restart: unless-stopped
+
+
+  # ML Service - Deep Learning & Behavior Analysis (porta 8004)
+  # TEMPORARIAMENTE DESABILITADO - Problemas com dependências OpenCV
+  # ml-service:
+  #   build:
+  #     context: .
+  #     dockerfile: services/ml_service/Dockerfile
+  #   container_name: agrovision-ml-service
+  #   environment:
+  #     MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_ml?authSource=admin
+  #     MONGODB_DB: agrovision_ml
+  #     LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  #   ports:
+  #     - "${ML_SERVICE_PORT:-8004}:8004"
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #   networks:
+  #     - agrovision
+  #   healthcheck:
+  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health')"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 20s
+  #   restart: unless-stopped
+
+
+  # API Gateway - Central Authentication & Routing (porta 8081)
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api_gateway/Dockerfile
+    container_name: agrovision-api-gateway
+    environment:
+      ANIMAL_SERVICE_URL: http://animal-service:8000
+      PESAGEM_SERVICE_URL: http://pesagem-service:8001
+      COTACAO_SERVICE_URL: http://cotacao-service:8002
+      VISION_SERVICE_URL: http://vision-service:8003
+      ML_SERVICE_URL: http://ml-service:8004
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/3
+    ports:
+      - "${GATEWAY_PORT:-8081}:8080"
+    depends_on:
+      - animal-service
+      - pesagem-service
+      - cotacao-service
+      # Vision e ML services desabilitados - problemas com OpenCV
+      # - vision-service
+      # - ml-service
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+# ==================== VOLUMES ====================
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local
+  mongo_data:
+    driver: local
+
+
+# ==================== NETWORKS ====================
+networks:
+  agrovision:
+    driver: bridge

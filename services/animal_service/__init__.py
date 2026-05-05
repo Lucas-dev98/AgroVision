@@ -1,1 +1,0 @@
-"""Animal Service Microserviço"""
