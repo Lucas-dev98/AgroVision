@@ -210,7 +210,12 @@ function Dashboard() {
                     <div><strong>Peso Inicial:</strong> {animal.peso_inicial} kg</div>
                   </div>
                   <div className="animal-actions">
-                    <Button variant="secondary" size="sm" fullWidth>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      fullWidth
+                      onClick={() => navigate(`/animal/${animal.id}`)}
+                    >
                       Detalhes
                     </Button>
                     <Button 

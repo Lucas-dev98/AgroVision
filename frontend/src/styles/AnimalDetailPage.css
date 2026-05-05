@@ -1,0 +1,186 @@
+.animal-detail-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.animal-detail-page__header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.animal-detail-page__back-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.animal-detail-page__header h1 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.animal-detail-page__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.animal-detail-page__loading p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.animal-detail-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.animal-detail-page__error h2 {
+  color: #c0392b;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.animal-detail-page__error p {
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+.animal-detail-page__content {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.animal-detail-page__info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.animal-detail-page__info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.animal-detail-page__info-item label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.animal-detail-page__info-item p {
+  color: #34495e;
+  font-size: 1.1rem;
+  margin: 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.status--ativo {
+  background: #d5f4e6;
+  color: #27ae60;
+}
+
+.status--vendido {
+  background: #ffeaa7;
+  color: #fdcb6e;
+}
+
+.status--falecido {
+  background: #fab1a0;
+  color: #e17055;
+}
+
+.animal-detail-page__actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid #ecf0f1;
+}
+
+.animal-detail-page__actions button {
+  flex: 1;
+}
+
+.animal-detail-page__edit-form {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.delete-confirm-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.delete-confirm-modal__warning {
+  padding: 1rem;
+  background: #fef5e7;
+  border-left: 4px solid #f39c12;
+  border-radius: 4px;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.delete-confirm-modal__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.delete-confirm-modal__actions button {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .animal-detail-page {
+    padding: 1rem;
+  }
+
+  .animal-detail-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .animal-detail-page__header h1 {
+    font-size: 1.5rem;
+  }
+
+  .animal-detail-page__info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .animal-detail-page__actions {
+    flex-direction: column;
+  }
+}
