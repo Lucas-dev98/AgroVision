@@ -1,0 +1,173 @@
+# Makefile - Real E2E Tests with Actual Database
+# Sem mocks! Tudo funciona de verdade com banco de dados real.
+
+.PHONY: help build up down logs clean test-real test-all-real health-check install-deps
+
+# ════════════════════════════════════════════════════════════════════════════════
+# HELP
+# ════════════════════════════════════════════════════════════════════════════════
+
+help:
+	@echo "════════════════════════════════════════════════════════════════════════════════"
+	@echo "  🚀 REAL E2E TESTS - API Gateway com Serviços Reais e Banco de Dados"
+	@echo "════════════════════════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "📦 BUILD COMMANDS:"
+	@echo "  make build              - Build Docker image (API Gateway)"
+	@echo "  make build-all          - Build todos os serviços (incluindo dependências)"
+	@echo ""
+	@echo "🚀 RUN COMMANDS:"
+	@echo "  make up                 - Iniciar serviços com BD real (docker-compose.real.yml)"
+	@echo "  make down               - Parar serviços"
+	@echo "  make restart            - Reiniciar tudo"
+	@echo ""
+	@echo "🧪 TEST COMMANDS:"
+	@echo "  make test-real          - Executar E2E tests reais (com BD)"
+	@echo "  make test-rate-limit    - Testar rate limiting"
+	@echo "  make test-all-real      - Executar todos os testes"
+	@echo ""
+	@echo "📊 UTILITIES:"
+	@echo "  make health-check       - Health check dos serviços"
+	@echo "  make logs               - Ver logs (realtime)"
+	@echo "  make logs-db            - Ver logs do database"
+	@echo "  make db-shell           - Acessar shell do PostgreSQL"
+	@echo "  make db-query           - Executar query no BD"
+	@echo ""
+	@echo "🧹 CLEANUP:"
+	@echo "  make clean              - Remover containers/volumes/volumes"
+	@echo "  make clean-db           - Apenas remover dados do BD"
+	@echo ""
+
+# ════════════════════════════════════════════════════════════════════════════════
+# BUILD
+# ════════════════════════════════════════════════════════════════════════════════
+
+build:
+	@echo "🔨 Building API Gateway..."
+	docker build -t agrovision/api-gateway:test .
+
+build-all:
+	@echo "🔨 Building todos os serviços..."
+	docker-compose -f docker-compose.real.yml build
+
+# ════════════════════════════════════════════════════════════════════════════════
+# RUN
+# ════════════════════════════════════════════════════════════════════════════════
+
+up:
+	@echo "🚀 Iniciando serviços reais com banco de dados..."
+	docker-compose -f docker-compose.real.yml up -d
+	@echo "⏳ Aguardando serviços iniciarem..."
+	@sleep 5
+	@echo "✅ Serviços iniciados!"
+	@echo ""
+	@echo "Endpoints:"
+	@echo "  API Gateway:    http://localhost:8000"
+	@echo "  Animal Service: http://localhost:8100"
+	@echo "  Pesagem Service: http://localhost:8101"
+	@echo "  Cotacao Service: http://localhost:8102"
+	@echo "  Vision Service: http://localhost:8103"
+	@echo ""
+	@echo "Banco de Dados:"
+	@echo "  PostgreSQL: localhost:5433 (agrovision/agrovision)"
+	@echo "  Redis: localhost:6380"
+	@echo "  MongoDB: localhost:27018 (admin/admin)"
+	@echo ""
+
+down:
+	@echo "🛑 Parando serviços..."
+	docker-compose -f docker-compose.real.yml down
+	@echo "✅ Serviços parados!"
+
+restart: down up
+
+# ════════════════════════════════════════════════════════════════════════════════
+# TESTS
+# ════════════════════════════════════════════════════════════════════════════════
+
+test-real:
+	@echo "🧪 Executando Real E2E Tests..."
+	@echo ""
+	@if [ ! -f tests/real_e2e_tests.sh ]; then \
+		echo "❌ Script de testes não encontrado!"; \
+		exit 1; \
+	fi
+	@chmod +x tests/real_e2e_tests.sh
+	@bash tests/real_e2e_tests.sh
+
+test-rate-limit:
+	@echo "🛡️  Testando Rate Limiting..."
+	@bash tests/rate_limit_tests.sh
+
+test-all-real: up test-real test-rate-limit down
+	@echo "✅ Todos os testes completados!"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# HEALTH & UTILITIES
+# ════════════════════════════════════════════════════════════════════════════════
+
+health-check:
+	@echo "❤️  Verificando saúde dos serviços..."
+	@echo ""
+	@echo "API Gateway:"
+	@curl -s http://localhost:8000/health | jq . || echo "❌ API Gateway offline"
+	@echo ""
+	@echo "Animal Service:"
+	@curl -s http://localhost:8100/health | jq . || echo "❌ Animal Service offline"
+	@echo ""
+	@echo "Pesagem Service:"
+	@curl -s http://localhost:8101/health | jq . || echo "❌ Pesagem Service offline"
+	@echo ""
+	@echo "Cotacao Service:"
+	@curl -s http://localhost:8102/health | jq . || echo "❌ Cotacao Service offline"
+	@echo ""
+
+logs:
+	docker-compose -f docker-compose.real.yml logs -f
+
+logs-api:
+	docker-compose -f docker-compose.real.yml logs -f api_gateway
+
+logs-db:
+	docker-compose -f docker-compose.real.yml logs -f db
+
+db-shell:
+	@echo "Conectando ao PostgreSQL..."
+	docker-compose -f docker-compose.real.yml exec -it db psql -U agrovision -d agrovision_test
+
+db-query:
+	@docker-compose -f docker-compose.real.yml exec -it db psql -U agrovision -d agrovision_test -c "SELECT * FROM animals LIMIT 5;"
+
+ps:
+	docker-compose -f docker-compose.real.yml ps
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CLEANUP
+# ════════════════════════════════════════════════════════════════════════════════
+
+clean:
+	@echo "🧹 Limpando tudo..."
+	docker-compose -f docker-compose.real.yml down -v
+	@echo "✅ Tudo limpo!"
+
+clean-db:
+	@echo "🧹 Limpando apenas dados do BD..."
+	docker-compose -f docker-compose.real.yml down
+	docker volume rm agrovision_db_test_data agrovision_redis_test_data agrovision_mongo_test_data 2>/dev/null || true
+	@echo "✅ Dados removidos! Use 'make up' para reiniciar"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# QUICK COMMANDS
+# ════════════════════════════════════════════════════════════════════════════════
+
+quick: up test-real down
+	@echo "✅ Quick test completo!"
+
+full: clean build-all test-all-real
+	@echo "✅ Full test completo!"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# DEFAULT
+# ════════════════════════════════════════════════════════════════════════════════
+
+.DEFAULT_GOAL := help

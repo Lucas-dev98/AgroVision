@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # ==================== DATABASE ====================
   db:
@@ -86,7 +84,7 @@ services:
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -112,7 +110,7 @@ services:
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -138,7 +136,7 @@ services:
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -147,58 +145,60 @@ services:
 
 
   # Vision Service - Computer Vision & Cattle Detection (porta 8003)
-  vision-service:
-    build:
-      context: .
-      dockerfile: services/vision_service/Dockerfile
-    container_name: agrovision-vision-service
-    environment:
-      MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_vision?authSource=admin
-      MONGODB_DB: agrovision_vision
-      YOLO_MODEL: yolov8n.pt
-      YOLO_CONFIDENCE: ${YOLO_CONFIDENCE:-0.5}
-      MAX_FRAME_SIZE_MB: 10
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    ports:
-      - "${VISION_SERVICE_PORT:-8003}:8003"
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - agrovision
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    restart: unless-stopped
+  # TEMPORARIAMENTE DESABILITADO - Problemas com dependências OpenCV
+  # vision-service:
+  #   build:
+  #     context: .
+  #     dockerfile: services/vision_service/Dockerfile
+  #   container_name: agrovision-vision-service
+  #   environment:
+  #     MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_vision?authSource=admin
+  #     MONGODB_DB: agrovision_vision
+  #     YOLO_MODEL: yolov8n.pt
+  #     YOLO_CONFIDENCE: ${YOLO_CONFIDENCE:-0.5}
+  #     MAX_FRAME_SIZE_MB: 10
+  #     LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  #   ports:
+  #     - "${VISION_SERVICE_PORT:-8003}:8003"
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #   networks:
+  #     - agrovision
+  #   healthcheck:
+  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 20s
+  #   restart: unless-stopped
 
 
   # ML Service - Deep Learning & Behavior Analysis (porta 8004)
-  ml-service:
-    build:
-      context: .
-      dockerfile: services/ml_service/Dockerfile
-    container_name: agrovision-ml-service
-    environment:
-      MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_ml?authSource=admin
-      MONGODB_DB: agrovision_ml
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    ports:
-      - "${ML_SERVICE_PORT:-8004}:8004"
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - agrovision
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    restart: unless-stopped
+  # TEMPORARIAMENTE DESABILITADO - Problemas com dependências OpenCV
+  # ml-service:
+  #   build:
+  #     context: .
+  #     dockerfile: services/ml_service/Dockerfile
+  #   container_name: agrovision-ml-service
+  #   environment:
+  #     MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin}@mongo:27017/agrovision_ml?authSource=admin
+  #     MONGODB_DB: agrovision_ml
+  #     LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  #   ports:
+  #     - "${ML_SERVICE_PORT:-8004}:8004"
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #   networks:
+  #     - agrovision
+  #   healthcheck:
+  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health')"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 20s
+  #   restart: unless-stopped
 
 
   # API Gateway - Central Authentication & Routing (porta 8081)
@@ -221,12 +221,13 @@ services:
       - animal-service
       - pesagem-service
       - cotacao-service
-      - vision-service
-      - ml-service
+      # Vision e ML services desabilitados - problemas com OpenCV
+      # - vision-service
+      # - ml-service
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
       interval: 15s
       timeout: 5s
       retries: 3

@@ -1,0 +1,206 @@
+version: '3.9'
+
+services:
+  # ==================== DATABASE ====================
+  db:
+    image: postgres:16-alpine
+    container_name: agrovision-test-db
+    environment:
+      POSTGRES_USER: agrovision
+      POSTGRES_PASSWORD: agrovision
+      POSTGRES_DB: agrovision_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_test_data:/var/lib/postgresql/data
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agrovision"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # ==================== CACHE (REDIS) ====================
+  redis:
+    image: redis:7-alpine
+    container_name: agrovision-test-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_test_data:/data
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # ==================== MONGODB (Vision Service) ====================
+  mongo:
+    image: mongo:7
+    container_name: agrovision-test-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: agrovision_vision_test
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_test_data:/data/db
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # ==================== REAL MICROSERVICES ====================
+
+  # Animal Service - Serviço Real (não mock!)
+  animal_service:
+    build:
+      context: ../../
+      dockerfile: services/animal_service/Dockerfile
+    container_name: agrovision-test-animal-service
+    environment:
+      DATABASE_URL: postgresql://agrovision:agrovision@db:5432/agrovision_test
+      LOG_LEVEL: INFO
+      REDIS_URL: redis://redis:6379/0
+      ANIMAL_SERVICE_PORT: 8000
+    ports:
+      - "8100:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # Pesagem Service - Serviço Real (não mock!)
+  pesagem_service:
+    build:
+      context: ../../
+      dockerfile: services/pesagem_service/Dockerfile
+    container_name: agrovision-test-pesagem-service
+    environment:
+      DATABASE_URL: postgresql://agrovision:agrovision@db:5432/agrovision_test
+      LOG_LEVEL: INFO
+      REDIS_URL: redis://redis:6379/0
+      PESAGEM_SERVICE_PORT: 8001
+    ports:
+      - "8101:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # Cotacao Service - Serviço Real (não mock!)
+  cotacao_service:
+    build:
+      context: ../../
+      dockerfile: services/cotacao_service/Dockerfile
+    container_name: agrovision-test-cotacao-service
+    environment:
+      DATABASE_URL: postgresql://agrovision:agrovision@db:5432/agrovision_test
+      LOG_LEVEL: INFO
+      REDIS_URL: redis://redis:6379/0
+      COTACAO_SERVICE_PORT: 8002
+    ports:
+      - "8102:8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # Vision Service - Serviço Real (não mock!)
+  vision_service:
+    build:
+      context: ../../
+      dockerfile: services/vision_service/Dockerfile
+    container_name: agrovision-test-vision-service
+    environment:
+      LOG_LEVEL: INFO
+      MONGO_URI: mongodb://admin:admin@mongo:27017/agrovision_vision_test?authSource=admin
+      VISION_SERVICE_PORT: 8003
+    ports:
+      - "8103:8003"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 90s
+
+  # API Gateway Go - Coordena todos os serviços reais
+  api_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrovision-test-api-gateway
+    environment:
+      PORT: 8000
+      ENVIRONMENT: test
+      LOG_LEVEL: debug
+      ANIMAL_SERVICE_URL: http://animal_service:8000
+      PESAGEM_SERVICE_URL: http://pesagem_service:8001
+      COTACAO_SERVICE_URL: http://cotacao_service:8002
+      VISION_SERVICE_URL: http://vision_service:8003
+      ML_SERVICE_URL: http://localhost:8004
+      RATE_LIMIT_REQUESTS: 100
+      RATE_LIMIT_WINDOW: 1m
+    ports:
+      - "8000:8000"
+    depends_on:
+      animal_service:
+        condition: service_healthy
+      pesagem_service:
+        condition: service_healthy
+      cotacao_service:
+        condition: service_healthy
+    networks:
+      - agrovision_test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+networks:
+  agrovision_test:
+    driver: bridge
+
+volumes:
+  db_test_data:
+  redis_test_data:
+  mongo_test_data:

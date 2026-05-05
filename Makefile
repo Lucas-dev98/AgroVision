@@ -1,4 +1,4 @@
-.PHONY: help build up down logs clean test ps health validate env push test-animal test-pesagem test-cotacao test-all
+.PHONY: help build up down logs clean clean-all test ps health validate env push test-animal test-pesagem test-cotacao test-all
 
 # ==================== DOCKER COMPOSE ====================
 help:
@@ -12,7 +12,8 @@ help:
 	@echo "  make down                - Stop all services"
 	@echo "  make ps                  - List running containers"
 	@echo "  make logs                - View all services logs"
-	@echo "  make clean               - Remove containers and volumes"
+	@echo "  make clean               - Remove containers/volumes (keeps build cache)"
+	@echo "  make clean-all           - Remove containers/volumes + Docker build cache"
 	@echo ""
 	@echo "🧪 TESTING (Local - without Docker):"
 	@echo "  make test-animal         - Test animal-service (41 tests)"
@@ -24,16 +25,17 @@ help:
 	@echo "  make env                 - Create .env from .env.example"
 	@echo "  make validate            - Validate docker-compose.yml"
 	@echo "  make health              - Check services health"
-	@echo "  make clean               - Remove containers and volumes"
+	@echo "  make clean               - Remove containers/volumes (keeps build cache)"
+	@echo "  make clean-all           - Remove containers/volumes + Docker build cache"
 	@echo ""
 
 build:
 	@echo "🔨 Building Docker images..."
-	docker-compose build
+	@DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 BUILDKIT_PROGRESS=plain docker compose build
 
 up:
 	@echo "🚀 Starting AgroVision stack..."
-	docker-compose up -d
+	@DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 BUILDKIT_PROGRESS=plain docker compose up -d
 	@echo "✅ Services starting..."
 	@echo "🌐 Services available at:"
 	@echo "  - animal-service:   http://localhost:8000/docs"
@@ -46,17 +48,17 @@ up:
 
 down:
 	@echo "⏹️  Stopping AgroVision stack..."
-	docker-compose down
+	@docker compose down
 
 ps:
-	@docker-compose ps
+	@docker compose ps
 
 logs:
-	@docker-compose logs -f
+	@docker compose logs -f
 
 health:
 	@echo "🏥 Checking services health..."
-	@docker-compose ps --format "table {{.Names}}	{{.State}}	{{.Status}}"
+	@docker compose ps --format "table {{.Names}}	{{.State}}	{{.Status}}"
 
 # ==================== TESTING (LOCAL) ====================
 test-animal:
@@ -88,10 +90,15 @@ validate:
 	@docker-compose config > /dev/null && echo "✅ Configuration is valid!"
 
 clean:
-	@echo "🧹 Cleaning up containers and volumes..."
-	@docker-compose down -v
+	@echo "🧹 Cleaning up containers and volumes (preserving build cache)..."
+	@docker compose down -v
+	@echo "✅ Cleanup complete (build cache preserved)!"
+
+clean-all:
+	@echo "🧨 Deep clean: removing containers, volumes, and Docker build cache..."
+	@docker compose down -v
 	@docker system prune -f
-	@echo "✅ Cleanup complete!"
+	@echo "✅ Deep cleanup complete!"
 
 push:
 	@echo "📤 Pushing to GitHub..."

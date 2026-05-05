@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agrovision
+      POSTGRES_PASSWORD: agrovision
+      POSTGRES_DB: agrovision
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ../animal_service_go/migrations/001_create_animals.sql:/docker-entrypoint-initdb.d/001_animals.sql
+      - ./migrations/001_create_pesagens.sql:/docker-entrypoint-initdb.d/002_pesagens.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agrovision"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pesagem-service:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://agrovision:agrovision@db:5432/agrovision
+      PORT: 8001
+      LOG_LEVEL: debug
+      ENVIRONMENT: development
+      JWT_SECRET: dev-secret-key
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ./app
+
+volumes:
+  db_data:
+
+networks:
+  default:
+    name: agrovision

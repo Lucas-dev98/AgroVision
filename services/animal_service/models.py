@@ -4,7 +4,7 @@ Modelos SQLAlchemy para Animal Service
 from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from sqlalchemy import (
-    Column, String, DateTime, Boolean, ForeignKey, Enum as SQLEnum, Text, Numeric
+    Column, String, DateTime, Boolean, ForeignKey, Text, Numeric
 )
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
@@ -33,8 +33,8 @@ class AnimalModel(Base):
     name = Column(String(100), nullable=True)
     breed = Column(String(50), nullable=False, index=True)
     birth_date = Column(DateTime, nullable=True)
-    gender = Column(SQLEnum(AnimalGender), nullable=False)
-    status = Column(SQLEnum(AnimalStatus), nullable=False, default=AnimalStatus.ACTIVE, index=True)
+    gender = Column(String(20), nullable=False)
+    status = Column(String(20), nullable=False, default=AnimalStatus.ACTIVE.value, index=True)
     
     # Relacionamentos de filiação
     mother_id = Column(String(36), ForeignKey("animals.id"), nullable=True)
@@ -82,7 +82,7 @@ class VaccineModel(Base):
     vaccine_name = Column(String(100), nullable=False)
     application_date = Column(DateTime, nullable=False)
     next_dose_date = Column(DateTime, nullable=True)
-    status = Column(SQLEnum('applied', 'pending', 'overdue', name='vaccine_status'), nullable=False)
+    status = Column(String(20), nullable=False)
     veterinarian = Column(String(100), nullable=True)
     notes = Column(Text, nullable=True)
     

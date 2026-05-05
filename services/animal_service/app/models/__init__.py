@@ -1,10 +1,9 @@
 """
 SQLAlchemy Models
 """
-from sqlalchemy import Column, Integer, String, Date, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Date, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timezone
-from enum import Enum as PythonEnum
 
 from app.schemas import AnimalStatus
 
@@ -21,7 +20,7 @@ class Animal(Base):
     data_nascimento = Column(Date, nullable=True)
     rfid = Column(String(50), unique=True, nullable=True, index=True)
     lote_id = Column(Integer, nullable=True)
-    status = Column(Enum(AnimalStatus), default=AnimalStatus.ATIVO, nullable=False, server_default=AnimalStatus.ATIVO)
+    status = Column(String(20), default=AnimalStatus.ATIVO.value, nullable=False)
     peso_inicial = Column(Integer, nullable=True)
     data_entrada = Column(Date, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

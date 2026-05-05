@@ -1,0 +1,202 @@
+version: '3.9'
+
+services:
+  # ==================== DATABASE ====================
+  db:
+    image: postgres:16-alpine
+    container_name: agrovision-db-go
+    environment:
+      POSTGRES_USER: ${DB_USER:-agrovision}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-agrovision}
+      POSTGRES_DB: ${DB_NAME:-agrovision}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-agrovision}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+  # ==================== CACHE (REDIS) ====================
+  redis:
+    image: redis:7-alpine
+    container_name: agrovision-redis-go
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+
+  # ==================== MONGODB (Vision Service) ====================
+  mongo:
+    image: mongo:7
+    container_name: agrovision-mongo-go
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
+      MONGO_INITDB_DATABASE: agrovision_vision
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # ==================== MICROSERVICES (ALL GO) ====================
+  
+  # Animal Service - Go (porta 8100)
+  animal-service:
+    build:
+      context: ./services/animal_service_go
+      dockerfile: Dockerfile
+    container_name: agrovision-animal-service-go
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}?sslmode=disable
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/0
+      PORT: 8000
+      ENVIRONMENT: production
+      JWT_SECRET: ${JWT_SECRET:-production-secret-key}
+    ports:
+      - "${ANIMAL_SERVICE_PORT:-8100}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Pesagem Service - Go (porta 8101)
+  pesagem-service:
+    build:
+      context: ./services/pesagem_service_go
+      dockerfile: Dockerfile
+    container_name: agrovision-pesagem-service-go
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}?sslmode=disable
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/1
+      PORT: 8001
+      ENVIRONMENT: production
+      JWT_SECRET: ${JWT_SECRET:-production-secret-key}
+    ports:
+      - "${PESAGEM_SERVICE_PORT:-8101}:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Cotacao Service - Go (porta 8102)
+  cotacao-service:
+    build:
+      context: ./services/cotacao_service_go
+      dockerfile: Dockerfile
+    container_name: agrovision-cotacao-service-go
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-agrovision}:${DB_PASSWORD:-agrovision}@db:5432/${DB_NAME:-agrovision}?sslmode=disable
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/2
+      PORT: 8002
+      ENVIRONMENT: production
+      JWT_SECRET: ${JWT_SECRET:-production-secret-key}
+    ports:
+      - "${COTACAO_SERVICE_PORT:-8102}:8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # API Gateway - Go (porta 8000)
+  api-gateway:
+    build:
+      context: ./services/api_gateway_go
+      dockerfile: Dockerfile
+    container_name: agrovision-api-gateway-go
+    environment:
+      ANIMAL_SERVICE_URL: http://animal-service:8000
+      PESAGEM_SERVICE_URL: http://pesagem-service:8001
+      COTACAO_SERVICE_URL: http://cotacao-service:8002
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/3
+      PORT: 8080
+      ENVIRONMENT: production
+      JWT_SECRET: ${JWT_SECRET:-production-secret-key}
+    ports:
+      - "${GATEWAY_PORT:-8000}:8080"
+    depends_on:
+      - animal-service
+      - pesagem-service
+      - cotacao-service
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+# ==================== VOLUMES ====================
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local
+  mongo_data:
+    driver: local
+
+
+# ==================== NETWORKS ====================
+networks:
+  agrovision:
+    driver: bridge

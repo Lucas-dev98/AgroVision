@@ -9,6 +9,37 @@ router = APIRouter()
 
 # ==================== ANIMAL SERVICE ROUTES ====================
 
+@router.api_route("/api/v1/animais", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
+async def proxy_animals_root(request: Request) -> JSONResponse:
+    """Roteia requisições para animal-service (root path)"""
+    method = request.method
+    body = None
+    
+    if method in ["POST", "PUT"]:
+        try:
+            body = await request.json()
+        except Exception:
+            body = None
+    
+    headers = dict(request.headers)
+    
+    result = await ProxyService.forward_request(
+        path="/api/v1/animals",
+        method=method,
+        body=body,
+        headers=headers,
+        service="animal"
+    )
+    
+    if result["status_code"] == 200:
+        return result["content"]
+    
+    raise HTTPException(
+        status_code=result["status_code"],
+        detail=result["content"]
+    )
+
+
 @router.api_route("/api/v1/animais/{path:path}", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
 async def proxy_animals(path: str, request: Request) -> JSONResponse:
     """Roteia requisições para animal-service"""
@@ -24,7 +55,7 @@ async def proxy_animals(path: str, request: Request) -> JSONResponse:
     headers = dict(request.headers)
     
     result = await ProxyService.forward_request(
-        path=f"/api/v1/animais/{path}",
+        path=f"/api/v1/animals/{path}",
         method=method,
         body=body,
         headers=headers,
@@ -41,6 +72,37 @@ async def proxy_animals(path: str, request: Request) -> JSONResponse:
 
 
 # ==================== PESAGEM SERVICE ROUTES ====================
+
+@router.api_route("/api/v1/pesagens", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
+async def proxy_pesagens_root(request: Request) -> JSONResponse:
+    """Roteia requisições para pesagem-service (root path)"""
+    method = request.method
+    body = None
+    
+    if method in ["POST", "PUT"]:
+        try:
+            body = await request.json()
+        except Exception:
+            body = None
+    
+    headers = dict(request.headers)
+    
+    result = await ProxyService.forward_request(
+        path="/api/v1/pesagens",
+        method=method,
+        body=body,
+        headers=headers,
+        service="pesagem"
+    )
+    
+    if result["status_code"] == 200:
+        return result["content"]
+    
+    raise HTTPException(
+        status_code=result["status_code"],
+        detail=result["content"]
+    )
+
 
 @router.api_route("/api/v1/pesagens/{path:path}", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
 async def proxy_pesagens(path: str, request: Request) -> JSONResponse:
@@ -74,6 +136,37 @@ async def proxy_pesagens(path: str, request: Request) -> JSONResponse:
 
 
 # ==================== COTACAO SERVICE ROUTES ====================
+
+@router.api_route("/api/v1/cotacoes", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
+async def proxy_cotacoes_root(request: Request) -> JSONResponse:
+    """Roteia requisições para cotacao-service (root path)"""
+    method = request.method
+    body = None
+    
+    if method in ["POST", "PUT"]:
+        try:
+            body = await request.json()
+        except Exception:
+            body = None
+    
+    headers = dict(request.headers)
+    
+    result = await ProxyService.forward_request(
+        path="/api/v1/cotacoes",
+        method=method,
+        body=body,
+        headers=headers,
+        service="cotacao"
+    )
+    
+    if result["status_code"] == 200:
+        return result["content"]
+    
+    raise HTTPException(
+        status_code=result["status_code"],
+        detail=result["content"]
+    )
+
 
 @router.api_route("/api/v1/cotacoes/{path:path}", methods=["GET", "POST", "PUT", "DELETE"], response_model=None)
 async def proxy_cotacoes(path: str, request: Request) -> JSONResponse:

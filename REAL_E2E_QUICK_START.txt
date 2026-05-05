@@ -1,0 +1,124 @@
+# 🚀 REAL E2E TESTS - REFERENCE RÁPIDA
+
+## ⚡ Quick Start (Copie e Cole!)
+
+```bash
+cd /home/lucasbastos/AgroVision/services/api_gateway_go
+
+# Tudo em um comando
+make -f Makefile.real up && sleep 5 && make -f Makefile.real test-real && make -f Makefile.real down
+```
+
+**Tempo**: ~5 minutos
+**Resultado**: Testes rodam, dados salvos em PostgreSQL! ✅
+
+---
+
+## 📋 O QUE MUDOU?
+
+| Antes | Agora |
+|-------|-------|
+| ❌ Mocks Nginx | ✅ Serviços REAIS |
+| ❌ Dados não persistem | ✅ PostgreSQL verdadeiro |
+| ❌ Testes simulam | ✅ Testes REAIS |
+
+---
+
+## 🎯 COMANDOS PRINCIPAIS
+
+### Iniciar Serviços
+```bash
+make -f Makefile.real up
+```
+
+### Rodar Testes
+```bash
+make -f Makefile.real test-real
+```
+
+### Ver Dados no BD
+```bash
+make -f Makefile.real db-shell
+# Depois: SELECT * FROM animals;
+```
+
+### Verificar Saúde
+```bash
+make -f Makefile.real health-check
+```
+
+### Parar Tudo
+```bash
+make -f Makefile.real down
+```
+
+### Limpar Tudo
+```bash
+make -f Makefile.real clean
+```
+
+---
+
+## 📚 DOCUMENTAÇÃO
+
+Leia para mais detalhes:
+
+1. **FASE35_COMPLETE_REAL_E2E.md** ← Comece aqui!
+2. **START_REAL_TESTS.md** ← Tutorial interativo
+3. **REAL_E2E_TESTS_GUIDE.md** ← Guia técnico completo
+
+---
+
+## 🗄️ BANCO DE DADOS
+
+```
+PostgreSQL:
+  Host: localhost:5433
+  User: agrovision
+  Pass: agrovision
+  DB: agrovision_test
+  
+  Dados salvos em:
+  - animals
+  - pesagens
+  - cotacoes
+```
+
+---
+
+## 🎯 ENDPOINTS TESTADOS
+
+- Animal Service (8100) - CRUD completo
+- Pesagem Service (8101) - CRUD completo
+- Cotacao Service (8102) - CRUD completo
+- API Gateway (8000) - Health + Proxy + Rate Limiting
+
+---
+
+## ✅ TESTES INCLUSOS
+
+✅ Health checks (3 serviços)
+✅ Create animal (persiste no BD)
+✅ Retrieve animal (valida persistência)
+✅ Update animal (modifica BD)
+✅ Create pesagem (com relacionamento)
+✅ Create cotacao (com dados reais)
+✅ Fluxo completo integrado
+✅ Rate limiting (API Gateway)
+✅ **DADOS REAIS NO POSTGRESQL!**
+
+---
+
+## 🚀 PRÓXIMOS PASSOS
+
+1. Execute: `make -f Makefile.real quick`
+2. Veja os testes rodar
+3. Verifique dados no BD: `make -f Makefile.real db-shell`
+4. Confirme: Dados estão lá! ✅
+
+---
+
+**Status**: ✅ Pronto para usar!
+**Hora**: ~5 minutos para validar tudo
+
+👉 **COMECE AGORA!** 👈

@@ -5,8 +5,6 @@ import LoginForm from '@components/organisms/LoginForm'
 import RegisterForm from '@components/organisms/RegisterForm'
 import ForgotPasswordForm from '@components/organisms/ForgotPasswordForm'
 import ResetPasswordForm from '@components/organisms/ResetPasswordForm'
-import LogoutPage from '@pages/LogoutPage'
-import VisualTestPage from '@pages/VisualTestPage'
 import Dashboard from '@pages/Dashboard'
 
 /**
@@ -87,18 +85,6 @@ const AppRoutes: React.FC = () => {
             <ResetPasswordForm />
           </PublicRoute>
         }
-      />
-      <Route
-        path="/logout"
-        element={<LogoutPage />}
-      />
-      <Route
-        path="/visual-test"
-        element={<VisualTestPage />}
-      />
-      <Route
-        path="/dashboard-test"
-        element={<Dashboard />}
       />
 
       {/* Rotas privadas */}
