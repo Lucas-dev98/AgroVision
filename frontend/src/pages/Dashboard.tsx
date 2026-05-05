@@ -164,6 +164,13 @@ function Dashboard() {
               >
                 Detecção (Vision)
               </Button>
+              <Button 
+                variant="secondary" 
+                size="md"
+                onClick={() => navigate('/ml')}
+              >
+                ML (Treinamento)
+              </Button>
             </div>
           </div>
 

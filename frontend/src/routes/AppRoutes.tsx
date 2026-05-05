@@ -10,6 +10,7 @@ import AnimalDetailPage from '@pages/AnimalDetailPage'
 import PesagensPage from '@pages/PesagensPage'
 import CotacoesPage from '@pages/CotacoesPage'
 import VisionPage from '@pages/VisionPage'
+import MLPage from '@pages/MLPage'
 
 /**
  * Componente de rota privada
@@ -133,6 +134,15 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <VisionPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/ml"
+        element={
+          <PrivateRoute>
+            <MLPage />
           </PrivateRoute>
         }
       />

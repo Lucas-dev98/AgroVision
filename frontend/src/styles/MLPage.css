@@ -1,0 +1,282 @@
+.ml-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.ml-page__header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ml-page__header h1 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.ml-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Models Section */
+.ml-section {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ml-section h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.model-card {
+  border: 1px solid #ecf0f1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.model-card:hover {
+  border-color: #3498db;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  transform: translateY(-2px);
+}
+
+.model-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.model-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.status {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status--active {
+  background: #d5f4e6;
+  color: #27ae60;
+}
+
+.status--training {
+  background: #fef5e7;
+  color: #f39c12;
+}
+
+.status--inactive {
+  background: #fadbd8;
+  color: #c0392b;
+}
+
+.model-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.model-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #34495e;
+  line-height: 1.5;
+}
+
+.model-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.model-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.model-actions button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Predictions Table */
+.predictions-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.predictions-table {
+  overflow-x: auto;
+}
+
+.predictions-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.predictions-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.predictions-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.predictions-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #ecf0f1;
+  color: #34495e;
+}
+
+.predictions-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.confidence-badge {
+  display: inline-block;
+  background: #d5f4e6;
+  color: #27ae60;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Forms */
+.training-form,
+.prediction-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.form-actions button {
+  min-width: 120px;
+}
+
+@media (max-width: 768px) {
+  .ml-page {
+    padding: 1rem;
+  }
+
+  .ml-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ml-page__header h1 {
+    font-size: 1.5rem;
+  }
+
+  .models-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .model-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .model-actions {
+    width: 100%;
+  }
+
+  .model-actions button {
+    min-width: unset;
+  }
+
+  .predictions-table {
+    font-size: 0.85rem;
+  }
+
+  .predictions-table th,
+  .predictions-table td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
