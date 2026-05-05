@@ -135,7 +135,7 @@ function Dashboard() {
         <section>
           <div className="section-header">
             <h2>Animais</h2>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Button 
                 variant="primary" 
                 size="md"
@@ -156,6 +156,13 @@ function Dashboard() {
                 onClick={() => navigate('/cotacoes')}
               >
                 Ver Cotações
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="md"
+                onClick={() => navigate('/vision')}
+              >
+                Detecção (Vision)
               </Button>
             </div>
           </div>

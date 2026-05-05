@@ -9,6 +9,7 @@ import Dashboard from '@pages/Dashboard'
 import AnimalDetailPage from '@pages/AnimalDetailPage'
 import PesagensPage from '@pages/PesagensPage'
 import CotacoesPage from '@pages/CotacoesPage'
+import VisionPage from '@pages/VisionPage'
 
 /**
  * Componente de rota privada
@@ -123,6 +124,15 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <CotacoesPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/vision"
+        element={
+          <PrivateRoute>
+            <VisionPage />
           </PrivateRoute>
         }
       />
