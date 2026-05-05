@@ -1,11 +1,13 @@
 package handler
-package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -26,12 +28,19 @@ type Detection struct {
 }
 
 type VisionHandler struct {
-	results map[string]*DetectionResult
+	results          map[string]*DetectionResult
+	yoloServiceURL   string
 }
 
 func NewVisionHandler() *VisionHandler {
+	yoloURL := os.Getenv("YOLO_SERVICE_URL")
+	if yoloURL == "" {
+		yoloURL = "http://localhost:8005"
+	}
+	
 	return &VisionHandler{
-		results: make(map[string]*DetectionResult),
+		results:        make(map[string]*DetectionResult),
+		yoloServiceURL: yoloURL,
 	}
 }
 
@@ -47,7 +56,7 @@ func (h *VisionHandler) Detect(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// Simulate image processing - in production, this would run YOLO
+	// Read image data
 	imageData, err := io.ReadAll(file)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -63,22 +72,87 @@ func (h *VisionHandler) Detect(c *gin.Context) {
 		return
 	}
 
-	// Simulate YOLO detection (mock)
-	detections := h.simulateYOLODetection(header.Filename)
-
-	// Create result
-	resultID := uuid.New().String()
-	result := &DetectionResult{
-		ID:         resultID,
-		ImageURL:   fmt.Sprintf("file://%s", header.Filename),
-		Detections: detections,
-		CreatedAt:  time.Now().UTC().Format(time.RFC3339),
+	// Call Python YOLO service
+	detectionResult, err := h.callYOLOService(imageData, header.Filename)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("YOLO detection failed: %v", err),
+		})
+		return
 	}
 
 	// Store result
-	h.results[resultID] = result
+	h.results[detectionResult.ID] = detectionResult
 
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, detectionResult)
+}
+
+// callYOLOService sends image to Python YOLO service and returns detections
+func (h *VisionHandler) callYOLOService(imageData []byte, filename string) (*DetectionResult, error) {
+	// Create multipart request
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	// Add file field
+	part, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %v", err)
+	}
+
+	_, err = io.Copy(part, bytes.NewReader(imageData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to write file data: %v", err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close writer: %v", err)
+	}
+
+	// Make HTTP request to YOLO service
+	url := fmt.Sprintf("%s/detect", h.yoloServiceURL)
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call YOLO service: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("YOLO service returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	// Parse response
+	var yoloResp struct {
+		ID        string      `json:"id"`
+		ImageURL  string      `json:"image_url"`
+		Detections []Detection `json:"detections"`
+		ModelUsed string      `json:"model_used"`
+		CreatedAt string      `json:"created_at"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&yoloResp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse YOLO response: %v", err)
+	}
+
+	// Create result
+	result := &DetectionResult{
+		ID:         yoloResp.ID,
+		ImageURL:   yoloResp.ImageURL,
+		Detections: yoloResp.Detections,
+		CreatedAt:  yoloResp.CreatedAt,
+	}
+
+	return result, nil
 }
 
 // GetResult retrieves a detection result by ID
@@ -109,35 +183,11 @@ func (h *VisionHandler) ListResults(c *gin.Context) {
 	})
 }
 
-// simulateYOLODetection simulates YOLO detection (mock)
-// In production, this would call actual YOLO model
-func (h *VisionHandler) simulateYOLODetection(filename string) []Detection {
-	rand.Seed(time.Now().UnixNano())
-
-	// Random number of detections (1-3)
-	numDetections := rand.Intn(3) + 1
-	detections := make([]Detection, numDetections)
-
-	for i := 0; i < numDetections; i++ {
-		detections[i] = Detection{
-			Class:      "animal",
-			Confidence: 0.85 + rand.Float64()*0.15, // 0.85 - 1.0
-			BBox: [4]float64{
-				float64(rand.Intn(200)),           // x1
-				float64(rand.Intn(200)),           // y1
-				float64(200 + rand.Intn(400)),     // x2
-				float64(200 + rand.Intn(400)),     // y2
-			},
-		}
-	}
-
-	return detections
-}
-
 // Health check
 func (h *VisionHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "ok",
-		"service": "vision-service",
+		"status":         "ok",
+		"service":        "vision-service",
+		"yolo_service":   h.yoloServiceURL,
 	})
 }

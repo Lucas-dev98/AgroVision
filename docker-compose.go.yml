@@ -165,8 +165,11 @@ services:
       VISION_SERVICE_HOSTNAME: 0.0.0.0
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: production
+      YOLO_SERVICE_URL: http://vision-yolo-service:8005
     ports:
       - "${VISION_SERVICE_PORT:-8103}:8003"
+    depends_on:
+      - vision-yolo-service
     networks:
       - agrovision
     healthcheck:
@@ -176,6 +179,37 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+
+
+  # Vision YOLO Service - Python (porta 8105)
+  vision-yolo-service:
+    build:
+      context: ./services/vision_yolo_service_python
+      dockerfile: Dockerfile
+    container_name: agrovision-vision-yolo-service-python
+    environment:
+      VISION_YOLO_PORT: 8005
+      VISION_YOLO_HOST: 0.0.0.0
+      YOLO_MODEL_PATH: yolov8n.pt
+    ports:
+      - "${VISION_YOLO_SERVICE_PORT:-8105}:8005"
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
 
 
   # ML Service - Go (porta 8104)
