@@ -170,7 +170,7 @@ services:
       ENVIRONMENT: production
       JWT_SECRET: ${JWT_SECRET:-production-secret-key}
     ports:
-      - "${GATEWAY_PORT:-8000}:8080"
+      - "${GATEWAY_PORT:-9000}:8080"
     depends_on:
       - animal-service
       - pesagem-service
