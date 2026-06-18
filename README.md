@@ -1,42 +1,117 @@
-# 🐄 Sistema de Gestão de Rebanho - Gado
+# 🌾 AgroVision - Plataforma Inteligente para Agricultura
 
-Sistema inteligente de gerenciamento de rebanho para fazenda com visão computacional (YOLO), integração com balança, cotações de mercado e controle sanitário/nutricional.
+**"Tecnologia inteligente para o campo"**
+
+Plataforma unificada mobile e web para gestão completa da propriedade rural com inteligência artificial, visão computacional e entrada por voz. Suporta múltiplas culturas: café, pimenta, cacau, hortaliças, fruticultura, pecuária e agricultura familiar.
+
+## 🎯 Público-Alvo
+
+- Cafeicultores
+- Produtores de pimenta-do-reino
+- Cacauicultores
+- Pecuaristas
+- Produtores de hortaliças e fruticultura
+- Pequenos e médios produtores rurais
 
 ## 🚀 Quick Start
 
 ### 1. Preparar Ambiente
 
 ```bash
-# Clone/entre no diretório
-cd boi
+# Clone o repositório
+git clone https://github.com/seu-user/AgroVision.git
+cd AgroVision
 
-# Copie o arquivo de exemplo
+# Copie o arquivo de configuração
 cp .env.example .env
 
-# Crie estrutura de pastas (se não existir)
-mkdir -p services/{animal-service,weighing-service,health-service,nutrition-service,vision-service,market-service}
-mkdir -p infra/{postgres,mongodb,redis}
-mkdir -p shared
+# Configure variáveis de ambiente no .env
+# DATABASE_URL, API_PORT, JWT_SECRET, etc
 ```
 
-### 2. Iniciar Bancos de Dados
+### 2. Iniciar Infraestrutura
 
 ```bash
 # Com Docker Compose
 docker-compose up -d
 
-# Verificar status
+# Verificar status dos containers
 docker-compose ps
 
 # Ver logs
-docker-compose logs postgres
+docker-compose logs -f postgres
 ```
 
 Outputs esperados:
-- PostgreSQL: `localhost:5432` (admin:admin123)
-- MongoDB: `localhost:27017` (admin:admin123)
-- Redis: `localhost:6379`
-- MinIO: `localhost:9000` (minioadmin:minioadmin)
+- **PostgreSQL:** `localhost:5432` (postgres:agrovision)
+- **Redis:** `localhost:6379`
+- **MinIO:** `localhost:9000` (minioadmin:minioadmin)
+- **API Gateway:** `localhost:8080`
+- **IA Service:** `localhost:8001`
+
+### 3. Setup do Backend (Go)
+
+```bash
+# Entrar no diretório do API Gateway
+cd services/api-gateway
+
+# Instalar dependências
+go mod download
+
+# Executar testes
+go test ./...
+
+# Iniciar servidor (em desenvolvimento)
+go run main.go
+```
+
+### 4. Setup do IA Service (Python)
+
+```bash
+# Entrar no diretório
+cd services/ai-service
+
+# Criar e ativar virtualenv
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+
+# Instalar dependências
+pip install -r requirements.txt
+
+# Executar testes
+pytest
+
+# Iniciar servidor
+python -m uvicorn app:app --reload
+```
+
+### 5. Setup do Frontend (Flutter)
+
+```bash
+# Entrar no diretório
+cd frontend
+
+# Instalar dependências
+flutter pub get
+
+# Executar em desenvolvimento (Web)
+flutter run -d chrome
+
+# Ou em Android/iOS
+flutter run
+```
+
+### 6. Executar Testes Completos
+
+```bash
+# Na raiz do projeto
+./run_all_tests.sh
+
+# Ou manualmente
+cd services/api-gateway && go test ./...
+cd ../ai-service && pytest
+cd ../../frontend && flutter test
+```
 
 ### 3. Instalar Dependências Python
 
@@ -72,57 +147,133 @@ pytest -v
 
 # Um teste específico
 pytest services/animal-service/test_animal_repository.py::TestAnimalRepositoryCreate::test_create_animal_success -v
+```---
+
+## 📚 Documentação Completa
+
+### Para Desenvolvedores
+- 📖 [Guia Técnico de Implementação](docs/16_GUIA_TECNICO_IMPLEMENTACAO.md) — Padrões, schemas, APIs
+- 🏗️ [Arquitetura de Microserviços](docs/02_ARQUITETURA.md) — Design system
+- 🎯 [Especificação Completa](docs/15_AGROVISION_COMPLETA.md) — 12 módulos detalhados
+- 📊 [Status do Projeto](STATUS.md) — Roadmap e progresso
+
+### Para Usuários
+- ✅ [TDD e Padrões](docs/06_TESTES_TDD.md) — Como escrever testes
+- 🐳 [Setup Docker](docs/07_DOCKER_SETUP.md) — Containers
+- 🔌 [Integração de APIs](docs/11_DOCKER_COMPOSE_GUIA.md) — External integrations
+
+---
+
+## 🎯 Os 12 Módulos
+
+| # | Módulo | Status | Descrição |
+|---|--------|--------|-----------|
+| 1 | Cadastro da Propriedade | 🚀 MVP | Fazendas, talhões, GPS |
+| 2 | Gestão da Produção | 🚀 MVP | Rastreamento por talhão |
+| 3 | Calendário Agrícola | ⏳ Q3 | Planejamento automático |
+| 4 | Controle Financeiro | 🚀 MVP | Custos e receitas |
+| 5 | Gestão de Estoque | 🚀 MVP | Insumos, previsões |
+| 6 | Clima Inteligente | 🚀 MVP | Alertas meteorológicos |
+| 7 | Pragas e Doenças | ⏳ Q3 | Diagnóstico por IA |
+| 8 | Visão Computacional | ⏳ Q3 | Análise de imagens |
+| 9 | Assistente IA | 🚀 MVP | Chat contextualizado |
+| 10 | Entrada por Voz | ⏳ Q3 | STT/TTS no campo |
+| 11 | Dashboard Executivo | 🚀 MVP | KPIs em tempo real |
+| 12 | Monitoramento por Drone | ⏳ Q4 | Análise aérea |
+
+---
+
+## 🏗️ Estrutura do Projeto
+
 ```
-
-### 5. Rodar Aplicação
-
-```bash
-# Animal Service
-python services/animal-service/main.py
-
-# Acesse: http://localhost:8001
-# Docs: http://localhost:8001/docs
+AgroVision/
+├── frontend/                    # Flutter (mobile + web)
+│   ├── lib/
+│   │   ├── screens/            # Telas da app
+│   │   ├── services/           # Chamadas de API
+│   │   ├── providers/          # State management
+│   │   └── models/             # DTOs
+│   └── test/                   # Testes
+│
+├── services/                   # Microserviços
+│   ├── api-gateway/            # Go - Autenticação, roteamento
+│   ├── users-service/          # Go - Usuários e permissões
+│   ├── property-service/       # Go - Propriedades e talhões
+│   ├── production-service/     # Go - Produção
+│   ├── financial-service/      # Go - Custos e receitas
+│   ├── stock-service/          # Go - Estoque
+│   ├── climate-service/        # Go - Integração climática
+│   ├── reports-service/        # Go - Dashboard
+│   ├── ai-service/             # Python - IA e NLP
+│   ├── vision-service/         # Python - Visão computacional
+│   └── ml-service/             # Python - Machine learning
+│
+├── infra/                      # Infraestrutura
+│   ├── postgres/               # Migração de BD
+│   ├── alembic/                # Versionamento de schema
+│   └── docker-compose.yml      # Orquestração
+│
+├── shared/                     # Código compartilhado
+│   ├── schemas.py              # DTOs compartilhados
+│   └── requirements.txt        # Dependências Python
+│
+└── docs/                       # Documentação
+    ├── 01_VISAO_DO_PRODUTO.md
+    ├── 02_ARQUITETURA.md
+    ├── 15_AGROVISION_COMPLETA.md
+    ├── 16_GUIA_TECNICO_IMPLEMENTACAO.md
+    └── ...
 ```
 
 ---
 
-## 📚 Explicação: TDD (Test-Driven Development)
+## 🔧 Tecnologias
 
-### O Ciclo TDD
+| Camada | Tecnologia | Motivo |
+|--------|-----------|--------|
+| **Frontend** | Flutter | Um código para Web, Android, iOS |
+| **Backend Principal** | Go | Performance, concorrência, escalabilidade |
+| **IA e ML** | Python | Ecossistema ML, TensorFlow, scikit-learn |
+| **Banco Dados** | PostgreSQL | Relacional, confiável, extensível |
+| **Cache** | Redis | Cache, sessões, filas |
+| **Armazenamento** | MinIO | S3 compatível, self-hosted |
+| **Containers** | Docker | Padronização, reproducibilidade |
+| **Orquestração** | Kubernetes | Escala futura |
 
-```
-┌─────────────┐
-│   RED 🔴    │  1. Escrever teste que falha
-├─────────────┤
-│   GREEN 🟢  │  2. Escrever código mínimo para passar
-├─────────────┤
-│ REFACTOR 🔵 │  3. Melhorar código mantendo testes passando
-└─────────────┘
-```
+---
 
-### Exemplo Prático: Animal Repository
+## 🚀 Roadmap
 
-#### Fase 1️⃣: RED (Escrever Testes)
+### Q2 2026 (MVP)
+- [x] Definição de produto
+- [ ] Implementação dos 7 módulos MVP
+- [ ] Testes beta com 50 usuários
+- [ ] Iteração baseada em feedback
 
-```python
-# services/animal-service/test_animal_repository.py
-def test_create_animal_success(animal_repository, animal_create_dto):
-    """Teste falha porque repository.create() não existe ainda"""
-    animal = animal_repository.create(animal_create_dto)
-    assert animal.id is not None
-    assert animal.ear_tag == "001"
-```
+### Q3 2026
+- [ ] Módulos 8, 9, 10 (Calendário, Pragas, Voz)
+- [ ] Suporte a 3 culturas
+- [ ] 200+ usuários
 
-**Status**: ❌ FALHA (o método não existe)
+### Q4 2026
+- [ ] Visão computacional avançada
+- [ ] Integração com drones
+- [ ] Suporte a pecuária
 
-#### Fase 2️⃣: GREEN (Código Mínimo)
+### 2027
+- [ ] Kubernetes
+- [ ] Marketplace
+- [ ] API pública
 
-```python
-# services/animal-service/repository.py
-class AnimalRepository:
-    def create(self, animal_data: AnimalCreate) -> AnimalModel:
-        animal = AnimalModel(**animal_data.model_dump())
-        self.db.add(animal)
+---
+
+## 📞 Contribuição
+
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para como colaborar.
+
+## 📄 Licença
+
+MIT License - veja [LICENSE.md](LICENSE.md)
         self.db.commit()
         self.db.refresh(animal)
         return animal

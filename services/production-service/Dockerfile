@@ -1,0 +1,1 @@
+FROM golang:1.21-alpine AS builder\n\nWORKDIR /app\n\nCOPY go.mod go.sum ./\nRUN go mod download\n\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -o production-service ./cmd\n\n# Final stage\nFROM alpine:latest\n\nRUN apk --no-cache add ca-certificates\n\nWORKDIR /root/\n\nCOPY --from=builder /app/production-service .\n\nEXPOSE 8082\n\nCMD [\"./production-service\"]\n"
