@@ -33,6 +33,10 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		CotacaoServiceURL: cfg.CotacaoServiceURL,
 		VisionServiceURL:  cfg.VisionServiceURL,
 		MLServiceURL:      cfg.MLServiceURL,
+		CircuitThreshold:  cfg.CircuitFailureThreshold,
+		CircuitOpenWindow: cfg.CircuitOpenTimeout,
+		UpstreamTimeout:   cfg.UpstreamTimeout,
+		CacheTTL:          cfg.CacheTTL,
 		Logger:            cfg.Logger,
 	}
 	proxyHandler := proxy.NewProxy(proxyConfig)
@@ -60,6 +64,10 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// Protect all other routes with authentication middleware
 	apiV1.Use(middleware.AuthMiddleware())
+
+	apiV1.GET("/dashboard", func(c *gin.Context) {
+		proxyHandler.Dashboard(c)
+	})
 
 	// Animal routes
 	animals := apiV1.Group("/animals")

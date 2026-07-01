@@ -1,40 +1,40 @@
 package tests
-package tests
 
 import (
 	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/agrovision/api-gateway/internal/config"
 	"github.com/agrovision/api-gateway/internal/router"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
-func setupTestRouter() *http.Handler {
+func setupTestRouter() *gin.Engine {
 	// Create a test configuration
 	cfg := &config.Config{
-		Port:                 8000,
-		Environment:         "test",
-		LogLevel:            "debug",
-		AnimalServiceURL:    "http://localhost:9000",
-		PesagemServiceURL:   "http://localhost:8001",
-		CotacaoServiceURL:   "http://localhost:8002",
-		VisionServiceURL:    "http://localhost:8003",
-		MLServiceURL:        "http://localhost:8004",
-		RateLimitRequests:   10,
-		RateLimitWindow:     1 * time.Second,
-		JWTSecret:           "test-secret",
-		Logger:              zap.NewNop(),
+		Port:              8000,
+		Environment:       "test",
+		LogLevel:          "debug",
+		AnimalServiceURL:  "http://localhost:9000",
+		PesagemServiceURL: "http://localhost:8001",
+		CotacaoServiceURL: "http://localhost:8002",
+		VisionServiceURL:  "http://localhost:8003",
+		MLServiceURL:      "http://localhost:8004",
+		RateLimitRequests: 10,
+		RateLimitWindow:   1 * time.Second,
+		JWTSecret:         "test-secret",
+		Logger:            zap.NewNop(),
 	}
 
 	r := router.SetupRouter(cfg)
-	return &r.Engine.Handler
+	return r
 }
 
 func TestHealthCheck(t *testing.T) {
@@ -110,17 +110,17 @@ func TestCORSPreflight(t *testing.T) {
 
 func TestRateLimitExceeded(t *testing.T) {
 	r := router.SetupRouter(&config.Config{
-		Port:                 8000,
-		Environment:         "test",
-		LogLevel:            "debug",
-		Logger:              zap.NewNop(),
-		RateLimitRequests:    2,
-		RateLimitWindow:      1 * time.Second,
-		AnimalServiceURL:    "http://localhost:9000",
-		PesagemServiceURL:   "http://localhost:8001",
-		CotacaoServiceURL:   "http://localhost:8002",
-		VisionServiceURL:    "http://localhost:8003",
-		MLServiceURL:        "http://localhost:8004",
+		Port:              8000,
+		Environment:       "test",
+		LogLevel:          "debug",
+		Logger:            zap.NewNop(),
+		RateLimitRequests: 2,
+		RateLimitWindow:   1 * time.Second,
+		AnimalServiceURL:  "http://localhost:9000",
+		PesagemServiceURL: "http://localhost:8001",
+		CotacaoServiceURL: "http://localhost:8002",
+		VisionServiceURL:  "http://localhost:8003",
+		MLServiceURL:      "http://localhost:8004",
 	})
 
 	// First request - should succeed
@@ -292,6 +292,190 @@ func TestHealthCheckResponseFormat(t *testing.T) {
 	assert.Contains(t, body, "\"service\":\"api-gateway\"")
 }
 
+func TestDashboardRequiresAuth(t *testing.T) {
+	r := setupTestRouter()
+
+	req := httptest.NewRequest("GET", "/api/v1/dashboard", nil)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestDashboardAggregationWithAuth(t *testing.T) {
+	r := setupTestRouter()
+
+	req := httptest.NewRequest("GET", "/api/v1/dashboard", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "services_total")
+	assert.Contains(t, w.Body.String(), "services")
+}
+
+func TestCircuitBreakerOpensAfterFailures(t *testing.T) {
+	r := router.SetupRouter(&config.Config{
+		Port:                    8000,
+		Environment:             "test",
+		LogLevel:                "debug",
+		AnimalServiceURL:        "http://127.0.0.1:1",
+		PesagemServiceURL:       "http://127.0.0.1:1",
+		CotacaoServiceURL:       "http://127.0.0.1:1",
+		VisionServiceURL:        "http://127.0.0.1:1",
+		MLServiceURL:            "http://127.0.0.1:1",
+		RateLimitRequests:       100,
+		RateLimitWindow:         1 * time.Second,
+		CircuitFailureThreshold: 2,
+		CircuitOpenTimeout:      5 * time.Second,
+		UpstreamTimeout:         200 * time.Millisecond,
+		JWTSecret:               "test-secret",
+		Logger:                  zap.NewNop(),
+	})
+
+	for i := 0; i < 2; i++ {
+		req := httptest.NewRequest("GET", "/api/v1/animals", nil)
+		req.Header.Set("Authorization", "Bearer test-token")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadGateway, w.Code)
+	}
+
+	req := httptest.NewRequest("GET", "/api/v1/animals", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+	assert.Contains(t, w.Body.String(), "Circuit breaker open")
+}
+
+func TestGetResponsesAreCached(t *testing.T) {
+	var animalGetCalls int32
+
+	animalService := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/animals" {
+			http.NotFound(w, r)
+			return
+		}
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		calls := atomic.AddInt32(&animalGetCalls, 1)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"calls":%d}`, calls)))
+	}))
+	defer animalService.Close()
+
+	r := router.SetupRouter(&config.Config{
+		Port:                    8000,
+		Environment:             "test",
+		LogLevel:                "debug",
+		AnimalServiceURL:        animalService.URL,
+		PesagemServiceURL:       "http://127.0.0.1:1",
+		CotacaoServiceURL:       "http://127.0.0.1:1",
+		VisionServiceURL:        "http://127.0.0.1:1",
+		MLServiceURL:            "http://127.0.0.1:1",
+		RateLimitRequests:       100,
+		RateLimitWindow:         1 * time.Second,
+		CircuitFailureThreshold: 10,
+		CircuitOpenTimeout:      1 * time.Second,
+		UpstreamTimeout:         1 * time.Second,
+		CacheTTL:                10 * time.Second,
+		JWTSecret:               "test-secret",
+		Logger:                  zap.NewNop(),
+	})
+
+	req1 := httptest.NewRequest("GET", "/api/v1/animals", nil)
+	req1.Header.Set("Authorization", "Bearer test-token")
+	w1 := httptest.NewRecorder()
+	r.ServeHTTP(w1, req1)
+	assert.Equal(t, http.StatusOK, w1.Code)
+	assert.Contains(t, w1.Body.String(), `"calls":1`)
+
+	req2 := httptest.NewRequest("GET", "/api/v1/animals", nil)
+	req2.Header.Set("Authorization", "Bearer test-token")
+	w2 := httptest.NewRecorder()
+	r.ServeHTTP(w2, req2)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Contains(t, w2.Body.String(), `"calls":1`)
+	assert.Equal(t, "HIT", w2.Header().Get("X-Cache"))
+	assert.Equal(t, int32(1), atomic.LoadInt32(&animalGetCalls))
+}
+
+func TestCacheInvalidatesOnWrite(t *testing.T) {
+	var animalGetCalls int32
+
+	animalService := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/animals" {
+			http.NotFound(w, r)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			calls := atomic.AddInt32(&animalGetCalls, 1)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(fmt.Sprintf(`{"calls":%d}`, calls)))
+		case http.MethodPost:
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte(`{"created":true}`))
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer animalService.Close()
+
+	r := router.SetupRouter(&config.Config{
+		Port:                    8000,
+		Environment:             "test",
+		LogLevel:                "debug",
+		AnimalServiceURL:        animalService.URL,
+		PesagemServiceURL:       "http://127.0.0.1:1",
+		CotacaoServiceURL:       "http://127.0.0.1:1",
+		VisionServiceURL:        "http://127.0.0.1:1",
+		MLServiceURL:            "http://127.0.0.1:1",
+		RateLimitRequests:       100,
+		RateLimitWindow:         1 * time.Second,
+		CircuitFailureThreshold: 10,
+		CircuitOpenTimeout:      1 * time.Second,
+		UpstreamTimeout:         1 * time.Second,
+		CacheTTL:                10 * time.Second,
+		JWTSecret:               "test-secret",
+		Logger:                  zap.NewNop(),
+	})
+
+	get1 := httptest.NewRequest("GET", "/api/v1/animals", nil)
+	get1.Header.Set("Authorization", "Bearer test-token")
+	get1W := httptest.NewRecorder()
+	r.ServeHTTP(get1W, get1)
+	assert.Equal(t, http.StatusOK, get1W.Code)
+	assert.Contains(t, get1W.Body.String(), `"calls":1`)
+
+	post := httptest.NewRequest("POST", "/api/v1/animals", bytes.NewReader([]byte(`{"name":"x"}`)))
+	post.Header.Set("Authorization", "Bearer test-token")
+	post.Header.Set("Content-Type", "application/json")
+	postW := httptest.NewRecorder()
+	r.ServeHTTP(postW, post)
+	assert.Equal(t, http.StatusCreated, postW.Code)
+
+	get2 := httptest.NewRequest("GET", "/api/v1/animals", nil)
+	get2.Header.Set("Authorization", "Bearer test-token")
+	get2W := httptest.NewRecorder()
+	r.ServeHTTP(get2W, get2)
+	assert.Equal(t, http.StatusOK, get2W.Code)
+	assert.Contains(t, get2W.Body.String(), `"calls":2`)
+	assert.Equal(t, int32(2), atomic.LoadInt32(&animalGetCalls))
+}
+
 // BenchmarkHealthCheck benchmarks the health check endpoint
 func BenchmarkHealthCheck(b *testing.B) {
 	r := router.SetupRouter(&config.Config{
@@ -312,17 +496,17 @@ func BenchmarkHealthCheck(b *testing.B) {
 // BenchmarkRateLimiter benchmarks the rate limiter
 func BenchmarkRateLimiter(b *testing.B) {
 	r := router.SetupRouter(&config.Config{
-		Port:                 8000,
-		Environment:         "test",
-		LogLevel:            "debug",
-		Logger:              zap.NewNop(),
-		RateLimitRequests:    1000,
-		RateLimitWindow:      10 * time.Second,
-		AnimalServiceURL:    "http://localhost:9000",
-		PesagemServiceURL:   "http://localhost:8001",
-		CotacaoServiceURL:   "http://localhost:8002",
-		VisionServiceURL:    "http://localhost:8003",
-		MLServiceURL:        "http://localhost:8004",
+		Port:              8000,
+		Environment:       "test",
+		LogLevel:          "debug",
+		Logger:            zap.NewNop(),
+		RateLimitRequests: 1000,
+		RateLimitWindow:   10 * time.Second,
+		AnimalServiceURL:  "http://localhost:9000",
+		PesagemServiceURL: "http://localhost:8001",
+		CotacaoServiceURL: "http://localhost:8002",
+		VisionServiceURL:  "http://localhost:8003",
+		MLServiceURL:      "http://localhost:8004",
 	})
 
 	b.ResetTimer()

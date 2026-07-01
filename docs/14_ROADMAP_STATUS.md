@@ -112,19 +112,19 @@ TOTAL:                 142 testes
 - Detectar serviços fora
 - Fallback responses
 - Recuperação automática
-- Status: Planejado
+- Status: ✅ Concluído
 
 ### ⏳ FASE 12: CACHING DISTRIBUÍDO
 - Cache com Redis para GET requests
 - Invalidação automática em POST/PUT/DELETE
 - TTL configurável
-- Status: Planejado
+- Status: ✅ Concluído (cache TTL em memória no gateway + invalidação por escrita)
 
 ### ⏳ FASE 13: NUTRIÇÃO SERVICE
 - Modelos de alimentação, refeições, histórico
 - Endpoints de nutrição
 - Integração com Animal Service
-- Status: Planejado
+- Status: Em andamento (esqueleto + testes iniciais TDD)
 
 ### ⏳ FASE 14: SAÚDE SERVICE
 - Modelos de vacinas, doenças, tratamentos
@@ -168,10 +168,14 @@ FASE 7:  ████████████████████ 100% ✅
 FASE 8:  ████████████████████ 100% ✅
 FASE 8B: ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
 FASE 9:  ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
+FASE 10: ████████████████████ 100% ✅
+FASE 11: ████████████████████ 100% ✅
+FASE 12: ████████████████████ 100% ✅
+FASE 13: ████░░░░░░░░░░░░░░░░  20%  🚧
 ...
 FASE 17: ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
 
-Total: 8 Fases Completas | 9+ Fases Planejadas
+Total: 11 Fases Completas | FASE 13 em andamento
 ```
 
 ---
@@ -239,11 +243,11 @@ curl http://localhost:8000/api/v1/animais
 ## 📞 Próximos Passos Imediatos
 
 1. **Validar Proxy com Docker**: Testar com stack completa rodando
-2. **Rate Limiting**: Implementar FASE 8B conforme config já preparada
-3. **Logging**: Adicionar logging centralizado para observability
-4. **Circuit Breaker**: Adicionar resiliência para falhas de serviço
+2. **FASE 13 (Nutrição)**: Consolidar modelos e endpoints de alimentação
+3. **Rate Limiting**: Revisar FASE 8B no backlog legado (status técnico já atendido no gateway Go)
+4. **Logging**: Adicionar logging centralizado para observability
 
 ---
 
-**Última Atualização**: 2024
-**Status**: ✅ 8 Fases Completas - Sistema Funcional e Pronto para Produção
+**Última Atualização**: 2026
+**Status**: ✅ 11 Fases Completas - FASE 13 em progresso

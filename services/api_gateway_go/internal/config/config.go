@@ -10,18 +10,22 @@ import (
 )
 
 type Config struct {
-	Port              int
-	Environment       string
-	LogLevel          string
-	AnimalServiceURL  string
-	PesagemServiceURL string
-	CotacaoServiceURL string
-	VisionServiceURL  string
-	MLServiceURL      string
-	RateLimitRequests int
-	RateLimitWindow   time.Duration
-	JWTSecret         string
-	Logger            *zap.Logger
+	Port                    int
+	Environment             string
+	LogLevel                string
+	AnimalServiceURL        string
+	PesagemServiceURL       string
+	CotacaoServiceURL       string
+	VisionServiceURL        string
+	MLServiceURL            string
+	RateLimitRequests       int
+	RateLimitWindow         time.Duration
+	CircuitFailureThreshold int
+	CircuitOpenTimeout      time.Duration
+	UpstreamTimeout         time.Duration
+	CacheTTL                time.Duration
+	JWTSecret               string
+	Logger                  *zap.Logger
 }
 
 func Load() (*Config, error) {
@@ -69,18 +73,50 @@ func Load() (*Config, error) {
 		}
 	}
 
+	circuitFailureThreshold := 3
+	if c := os.Getenv("CIRCUIT_FAILURE_THRESHOLD"); c != "" {
+		if parsed, err := strconv.Atoi(c); err == nil {
+			circuitFailureThreshold = parsed
+		}
+	}
+
+	circuitOpenTimeout := 30 * time.Second
+	if c := os.Getenv("CIRCUIT_OPEN_TIMEOUT"); c != "" {
+		if parsed, err := time.ParseDuration(c); err == nil {
+			circuitOpenTimeout = parsed
+		}
+	}
+
+	upstreamTimeout := 5 * time.Second
+	if u := os.Getenv("UPSTREAM_TIMEOUT"); u != "" {
+		if parsed, err := time.ParseDuration(u); err == nil {
+			upstreamTimeout = parsed
+		}
+	}
+
+	cacheTTL := 30 * time.Second
+	if ttl := os.Getenv("CACHE_TTL"); ttl != "" {
+		if parsed, err := time.ParseDuration(ttl); err == nil {
+			cacheTTL = parsed
+		}
+	}
+
 	return &Config{
-		Port:              port,
-		Environment:       os.Getenv("ENVIRONMENT"),
-		LogLevel:          logLevel,
-		AnimalServiceURL:  os.Getenv("ANIMAL_SERVICE_URL"),
-		PesagemServiceURL: os.Getenv("PESAGEM_SERVICE_URL"),
-		CotacaoServiceURL: os.Getenv("COTACAO_SERVICE_URL"),
-		VisionServiceURL:  os.Getenv("VISION_SERVICE_URL"),
-		MLServiceURL:      os.Getenv("ML_SERVICE_URL"),
-		RateLimitRequests: rateLimitRequests,
-		RateLimitWindow:   rateLimitWindow,
-		JWTSecret:         os.Getenv("JWT_SECRET"),
-		Logger:            logger,
+		Port:                    port,
+		Environment:             os.Getenv("ENVIRONMENT"),
+		LogLevel:                logLevel,
+		AnimalServiceURL:        os.Getenv("ANIMAL_SERVICE_URL"),
+		PesagemServiceURL:       os.Getenv("PESAGEM_SERVICE_URL"),
+		CotacaoServiceURL:       os.Getenv("COTACAO_SERVICE_URL"),
+		VisionServiceURL:        os.Getenv("VISION_SERVICE_URL"),
+		MLServiceURL:            os.Getenv("ML_SERVICE_URL"),
+		RateLimitRequests:       rateLimitRequests,
+		RateLimitWindow:         rateLimitWindow,
+		CircuitFailureThreshold: circuitFailureThreshold,
+		CircuitOpenTimeout:      circuitOpenTimeout,
+		UpstreamTimeout:         upstreamTimeout,
+		CacheTTL:                cacheTTL,
+		JWTSecret:               os.Getenv("JWT_SECRET"),
+		Logger:                  logger,
 	}, nil
 }
