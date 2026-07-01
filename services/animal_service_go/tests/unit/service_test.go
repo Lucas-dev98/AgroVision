@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/agrovision/animal-service/internal/models"
-	"github.com/agrovision/animal-service/internal/repository"
 	"github.com/agrovision/animal-service/internal/service"
 	"go.uber.org/zap"
 )

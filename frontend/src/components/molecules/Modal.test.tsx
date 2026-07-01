@@ -265,7 +265,6 @@ describe('Modal Component', () => {
     })
 
     it('should trap focus inside modal', async () => {
-      const user = userEvent.setup()
       render(
         <Modal isOpen={true} title="Test Modal">
           <input type="text" placeholder="Test input" />

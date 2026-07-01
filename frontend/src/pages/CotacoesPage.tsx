@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Cotacao } from '@types/index'
+import { Cotacao } from '@/types'
 import apiService from '@services/api'
 import Button from '@components/atoms/Button'
 import Modal from '@components/molecules/Modal'
@@ -115,7 +115,7 @@ const CotacoesPage: React.FC = () => {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (_id: number) => {
     if (!confirm('Tem certeza que deseja deletar esta cotação?')) {
       return
     }

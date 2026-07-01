@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/agrovision/api-gateway/internal/models"
 )
@@ -304,4 +307,64 @@ func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+func hashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
+}
+
+func (r *UserRepository) StoreRefreshToken(userID int, refreshToken string, expiresAt time.Time) error {
+	if r.db == nil {
+		return errors.New("database not configured")
+	}
+
+	query := `
+		INSERT INTO refresh_tokens (user_id, token_hash, expires_at, revoked, created_at)
+		VALUES ($1, $2, $3, false, NOW())
+	`
+
+	_, err := r.db.Exec(query, userID, hashToken(refreshToken), expiresAt)
+	return err
+}
+
+func (r *UserRepository) ValidateRefreshToken(refreshToken string) (int, error) {
+	if r.db == nil {
+		return 0, errors.New("database not configured")
+	}
+
+	var userID int
+	query := `
+		SELECT user_id
+		FROM refresh_tokens
+		WHERE token_hash = $1
+		  AND revoked = false
+		  AND expires_at > NOW()
+		LIMIT 1
+	`
+
+	err := r.db.QueryRow(query, hashToken(refreshToken)).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, errors.New("refresh token not found")
+		}
+		return 0, err
+	}
+
+	return userID, nil
+}
+
+func (r *UserRepository) RevokeRefreshToken(refreshToken string) error {
+	if r.db == nil {
+		return errors.New("database not configured")
+	}
+
+	query := `
+		UPDATE refresh_tokens
+		SET revoked = true
+		WHERE token_hash = $1
+	`
+
+	_, err := r.db.Exec(query, hashToken(refreshToken))
+	return err
 }

@@ -5,12 +5,15 @@ import LoginForm from '@components/organisms/LoginForm'
 import RegisterForm from '@components/organisms/RegisterForm'
 import ForgotPasswordForm from '@components/organisms/ForgotPasswordForm'
 import ResetPasswordForm from '@components/organisms/ResetPasswordForm'
+import AppShell from '@components/layout/AppShell'
 import Dashboard from '@pages/Dashboard'
 import AnimalDetailPage from '@pages/AnimalDetailPage'
 import PesagensPage from '@pages/PesagensPage'
 import CotacoesPage from '@pages/CotacoesPage'
 import VisionPage from '@pages/VisionPage'
 import MLPage from '@pages/MLPage'
+import PropertyManagementPage from '@pages/PropertyManagementPage'
+import RuralModulePage from '@pages/RuralModulePage'
 
 /**
  * Componente de rota privada
@@ -97,7 +100,9 @@ const AppRoutes: React.FC = () => {
         path="/dashboard"
         element={
           <PrivateRoute>
-            <Dashboard />
+            <AppShell>
+              <Dashboard />
+            </AppShell>
           </PrivateRoute>
         }
       />
@@ -106,7 +111,9 @@ const AppRoutes: React.FC = () => {
         path="/animal/:id"
         element={
           <PrivateRoute>
-            <AnimalDetailPage />
+            <AppShell>
+              <AnimalDetailPage />
+            </AppShell>
           </PrivateRoute>
         }
       />
@@ -115,7 +122,9 @@ const AppRoutes: React.FC = () => {
         path="/pesagens"
         element={
           <PrivateRoute>
-            <PesagensPage />
+            <AppShell>
+              <PesagensPage />
+            </AppShell>
           </PrivateRoute>
         }
       />
@@ -124,7 +133,9 @@ const AppRoutes: React.FC = () => {
         path="/cotacoes"
         element={
           <PrivateRoute>
-            <CotacoesPage />
+            <AppShell>
+              <CotacoesPage />
+            </AppShell>
           </PrivateRoute>
         }
       />
@@ -133,7 +144,9 @@ const AppRoutes: React.FC = () => {
         path="/vision"
         element={
           <PrivateRoute>
-            <VisionPage />
+            <AppShell>
+              <VisionPage />
+            </AppShell>
           </PrivateRoute>
         }
       />
@@ -142,7 +155,31 @@ const AppRoutes: React.FC = () => {
         path="/ml"
         element={
           <PrivateRoute>
-            <MLPage />
+            <AppShell>
+              <MLPage />
+            </AppShell>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/rural/propriedades"
+        element={
+          <PrivateRoute>
+            <AppShell>
+              <PropertyManagementPage />
+            </AppShell>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/rural/:moduleId"
+        element={
+          <PrivateRoute>
+            <AppShell>
+              <RuralModulePage />
+            </AppShell>
           </PrivateRoute>
         }
       />

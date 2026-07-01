@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/agrovision/api-gateway/internal/config"
+	"github.com/agrovision/api-gateway/internal/db"
 	"github.com/agrovision/api-gateway/internal/router"
 )
 
@@ -15,8 +16,29 @@ func main() {
 		panic(fmt.Sprintf("Failed to load config: %v", err))
 	}
 
+	postgresDB, err := db.ConnectPostgres(
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBName,
+		cfg.DBSSLMode,
+	)
+	if err != nil {
+		cfg.Logger.Fatal(fmt.Sprintf("Failed to connect to database: %v", err))
+	}
+	defer postgresDB.Close()
+
+	if err := db.EnsureUsersSchema(postgresDB); err != nil {
+		cfg.Logger.Fatal(fmt.Sprintf("Failed to ensure users schema: %v", err))
+	}
+
+	if err := db.SeedUsers(postgresDB); err != nil {
+		cfg.Logger.Fatal(fmt.Sprintf("Failed to seed users: %v", err))
+	}
+
 	// Setup router
-	r := router.SetupRouter(cfg)
+	r := router.SetupRouter(cfg, postgresDB)
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.Port)

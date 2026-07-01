@@ -3,27 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import Button from '@components/atoms/Button'
 import Modal from '@components/molecules/Modal'
 import apiService from '@services/api'
+import { MLModel, PredictionResult } from '@/types'
 import '../styles/global.css'
 import '../styles/MLPage.css'
-
-interface MLModel {
-  id: string
-  name: string
-  type: 'anomaly_detection' | 'behavior_classification' | 'prediction'
-  status: 'active' | 'training' | 'inactive'
-  accuracy?: number
-  last_trained?: string
-  version: string
-}
-
-interface PredictionResult {
-  id: string
-  model_id: string
-  input: string
-  output: string
-  confidence: number
-  created_at: string
-}
 
 const MLPage: React.FC = () => {
   const navigate = useNavigate()
@@ -85,7 +67,7 @@ const MLPage: React.FC = () => {
 
     setIsTraining(true)
     try {
-      const result = await apiService.trainModel(selectedModel.id, trainingParams)
+      await apiService.trainModel(selectedModel.id, trainingParams)
       
       // Update model status
       setModels(models.map(m => 

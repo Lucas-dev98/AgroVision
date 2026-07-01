@@ -23,7 +23,16 @@ interface AnimalDetailProps {
   breadcrumbs: BreadcrumbItem[]
   isLoading?: boolean
   error?: string
-  onSave?: (animal: Animal) => void
+  onSave?: (animal: {
+    id?: string
+    nome: string
+    raca: string
+    rfid: string
+    status?: 'ativo' | 'inativo' | 'vendido'
+    peso_inicial: number
+    sexo: 'M' | 'F'
+    data_nascimento: string
+  }) => void
   onDelete?: (id: string) => void
   onCancel?: () => void
 }
@@ -54,7 +63,16 @@ const AnimalDetail: React.FC<AnimalDetailProps> = ({
   }
 
   const handleSave = useCallback(
-    async (updatedAnimal: Animal) => {
+    async (updatedAnimal: {
+      id?: string
+      nome: string
+      raca: string
+      rfid: string
+      status?: 'ativo' | 'inativo' | 'vendido'
+      peso_inicial: number
+      sexo: 'M' | 'F'
+      data_nascimento: string
+    }) => {
       setIsSaving(true)
       try {
         onSave?.(updatedAnimal)
@@ -62,7 +80,7 @@ const AnimalDetail: React.FC<AnimalDetailProps> = ({
         setAlertType('success')
         setShowAlert(true)
         setIsEditMode(false)
-      } catch (err) {
+      } catch {
         setAlertMessage('Erro ao atualizar animal!')
         setAlertType('error')
         setShowAlert(true)
@@ -84,7 +102,7 @@ const AnimalDetail: React.FC<AnimalDetailProps> = ({
       setAlertMessage('Animal deletado com sucesso!')
       setAlertType('success')
       setShowAlert(true)
-    } catch (err) {
+    } catch {
       setAlertMessage('Erro ao deletar animal!')
       setAlertType('error')
       setShowAlert(true)
@@ -194,7 +212,7 @@ const AnimalDetail: React.FC<AnimalDetailProps> = ({
         {/* Edit Form */}
         {isEditMode && (
           <div className="animal-detail__form">
-            <AnimalForm animal={animal} onSubmit={handleSave} isEditMode={true} />
+            <AnimalForm animal={animal} onSubmit={handleSave} />
           </div>
         )}
       </div>

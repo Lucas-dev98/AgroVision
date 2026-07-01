@@ -53,6 +53,29 @@ Versão 1.0 com maior potencial de retorno rápido:
 
 Esse MVP já gera valor para cafeicultores das principais regiões produtoras.
 
+## Módulos Já Representados No Frontend
+
+O frontend da plataforma já possui navegação e superfícies visuais para estes núcleos da visão do produto:
+
+- Gestão de Propriedades
+- Controle de Custos
+- Gestão de Estoque
+- Clima Inteligente
+- Assistente IA
+- Entrada por Voz
+- Monitoramento por Drone
+- Calendário Agrícola
+
+Esses módulos podem começar como áreas de operação, painéis analíticos ou fluxos guiados, mantendo a mesma linguagem visual da plataforma.
+
+## Próximas Entregas Prioritárias
+
+1. Integração de dados reais por cultura e por propriedade
+2. Fluxos de criação, consulta e edição para cada módulo rural
+3. Alertas e notificações operacionais
+4. Consolidação de dashboards executivos por unidade produtiva
+5. Assistente IA com contexto da propriedade e histórico operacional
+
 ## Benefícios
 
 ✅ **Eficiência** — Automatização de registros com voz

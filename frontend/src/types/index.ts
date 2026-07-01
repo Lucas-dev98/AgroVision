@@ -36,11 +36,43 @@ export interface Cotacao {
   atualizada_em: string
 }
 
+export interface Property {
+  id: string
+  user_id: string
+  name: string
+  total_area: number
+  planted_area: number
+  location_lat: number
+  location_lng: number
+  soil_type: string
+  created_at: string
+  updated_at: string
+}
+
 export interface DashboardData {
   animal: Animal
   pesagens: Pesagem[]
   cotacoes: Cotacao[]
   valor_total: number
+}
+
+export interface MLModel {
+  id: string
+  name: string
+  type: 'anomaly_detection' | 'behavior_classification' | 'prediction'
+  status: 'active' | 'training' | 'inactive'
+  accuracy?: number
+  last_trained?: string
+  version: string
+}
+
+export interface PredictionResult {
+  id: string
+  model_id: string
+  input: string
+  output: string
+  confidence: number
+  created_at: string
 }
 
 export interface ApiResponse<T> {

@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import authService from '@services/authService'
-import useMFA from '@hooks/useMFA'
+import { useAuth } from '@context/AuthContext'
 import Button from '@components/atoms/Button'
 import Input from '@components/atoms/Input'
-import MFAVerification from './MFAVerification'
 import logoImg from '@/assets/agrovision-logo.jpg'
 import './LoginForm.css'
 
@@ -16,25 +14,17 @@ interface FormErrors {
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate()
+  const { login: authLogin } = useAuth()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [cpfCnpj, setCpfCnpj] = useState('')
   const [password, setPassword] = useState('')
-  const [userEmail, setUserEmail] = useState<string | undefined>()
-  const [userPhone, setUserPhone] = useState<string | undefined>()
-
-  // Hook de MFA
-  const mfa = useMFA()
 
   /**
-   * Validar CPF/CNPJ
+   * Validar identificador de acesso
    */
-  const validateCpfCnpj = (value: string): boolean => {
-    // Remover caracteres não numéricos
-    const cleaned = value.replace(/\D/g, '')
-
-    // CPF tem 11 dígitos, CNPJ tem 14
-    return cleaned.length === 11 || cleaned.length === 14
+  const validateUsername = (value: string): boolean => {
+    return value.trim().length >= 3
   }
 
   /**
@@ -44,9 +34,9 @@ const LoginForm: React.FC = () => {
     const newErrors: FormErrors = {}
 
     if (!cpfCnpj.trim()) {
-      newErrors.cpf_cnpj = 'CPF/CNPJ é obrigatório'
-    } else if (!validateCpfCnpj(cpfCnpj)) {
-      newErrors.cpf_cnpj = 'CPF/CNPJ deve ter 11 ou 14 dígitos'
+      newErrors.cpf_cnpj = 'Usuário é obrigatório'
+    } else if (!validateUsername(cpfCnpj)) {
+      newErrors.cpf_cnpj = 'Usuário deve ter ao menos 3 caracteres'
     }
 
     if (!password.trim()) {
@@ -99,26 +89,8 @@ const LoginForm: React.FC = () => {
     setLoading(true)
 
     try {
-      // Tentar fazer login
-      const response = await authService.login(cpfCnpj, password)
-
-      // Verificar se MFA é necessário
-      if (response.requires_mfa) {
-        // MFA necessário - requisitar código
-        setUserEmail(response.email)
-        setUserPhone(response.phone)
-
-        // Requisitar MFA (padrão: email)
-        const mfaMethod = (response.mfa_methods?.[0] || 'email') as
-          | 'email'
-          | 'sms'
-          | 'authenticator'
-
-        await mfa.requestMFA(response.user_id, mfaMethod)
-      } else {
-        // Login bem-sucedido sem MFA
-        navigate('/dashboard')
-      }
+      await authLogin(cpfCnpj, password)
+      navigate('/dashboard')
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido'
@@ -129,38 +101,6 @@ const LoginForm: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  /**
-   * Lidar com sucesso de MFA
-   */
-  const handleMFASuccess = () => {
-    // Navegar para dashboard após MFA bem-sucedido
-    navigate('/dashboard')
-  }
-
-  /**
-   * Voltar de MFA para login
-   */
-  const handleBackToLogin = () => {
-    mfa.clearMFA()
-    setErrors({})
-    setCpfCnpj('')
-    setPassword('')
-  }
-
-  // Se MFA é necessário, mostrar tela de verificação
-  if (mfa.mfaRequired && mfa.sessionToken) {
-    return (
-      <MFAVerification
-        sessionToken={mfa.sessionToken}
-        method={mfa.mfaMethod || 'email'}
-        email={userEmail}
-        phone={userPhone}
-        onSuccess={handleMFASuccess}
-        onChangeMethod={handleBackToLogin}
-      />
-    )
   }
 
   return (
@@ -181,25 +121,19 @@ const LoginForm: React.FC = () => {
           </div>
         )}
 
-        {mfa.mfaError && (
-          <div className="login-form__error-banner" role="alert">
-            {mfa.mfaError}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-form__field">
             <label htmlFor="cpf_cnpj" className="login-form__label">
-              CPF/CNPJ
+              Usuário
             </label>
             <Input
               id="cpf_cnpj"
               type="text"
-              placeholder="Ex: 123.456.789-01"
+              placeholder="Ex: admin ou 123.456.789-01"
               value={cpfCnpj}
               onChange={e => handleInputChange('cpf_cnpj', e.target.value)}
               error={errors.cpf_cnpj}
-              disabled={loading || mfa.mfaLoading}
+              disabled={loading}
             />
           </div>
 
@@ -214,7 +148,7 @@ const LoginForm: React.FC = () => {
               value={password}
               onChange={e => handleInputChange('password', e.target.value)}
               error={errors.password}
-              disabled={loading || mfa.mfaLoading}
+              disabled={loading}
             />
           </div>
 
@@ -226,7 +160,7 @@ const LoginForm: React.FC = () => {
             type="submit"
             variant="primary"
             size="lg"
-            disabled={loading || mfa.mfaLoading}
+            disabled={loading}
             fullWidth
           >
             {loading ? 'Entrando...' : 'Entrar'}

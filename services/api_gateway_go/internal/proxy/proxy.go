@@ -17,6 +17,7 @@ type ProxyConfig struct {
 	AnimalServiceURL    string
 	PesagemServiceURL   string
 	CotacaoServiceURL   string
+	PropertyServiceURL  string
 	NutritionServiceURL string
 	VisionServiceURL    string
 	MLServiceURL        string
@@ -146,6 +147,7 @@ func (p *Proxy) ForwardRequest(c *gin.Context, targetURL string, cacheKey string
 
 func (p *Proxy) RouteToService(c *gin.Context) {
 	path := c.Request.URL.Path
+	targetPath := path
 
 	// Route based on path prefix
 	var targetURL string
@@ -161,6 +163,10 @@ func (p *Proxy) RouteToService(c *gin.Context) {
 	case strings.HasPrefix(path, "/api/v1/cotacoes"):
 		targetURL = p.config.CotacaoServiceURL
 		targetService = "cotacao"
+	case strings.HasPrefix(path, "/api/v1/properties"):
+		targetURL = p.config.PropertyServiceURL
+		targetService = "property"
+		targetPath = strings.TrimPrefix(path, "/api/v1")
 	case strings.HasPrefix(path, "/api/v1/nutrition"):
 		targetURL = p.config.NutritionServiceURL
 		targetService = "nutrition"
@@ -205,7 +211,7 @@ func (p *Proxy) RouteToService(c *gin.Context) {
 	}
 
 	// Add query parameters
-	fullURL := parsedURL.Scheme + "://" + parsedURL.Host + path
+	fullURL := parsedURL.Scheme + "://" + parsedURL.Host + targetPath
 	if c.Request.URL.RawQuery != "" {
 		fullURL += "?" + c.Request.URL.RawQuery
 	}
@@ -225,9 +231,18 @@ func (p *Proxy) RouteToService(c *gin.Context) {
 		}
 	}
 
+	if targetService == "property" {
+		if userID, ok := c.Get("user_id"); ok {
+			c.Request.Header.Set("X-User-ID", fmt.Sprint(userID))
+		}
+		if username, ok := c.Get("username"); ok {
+			c.Request.Header.Set("X-Username", fmt.Sprint(username))
+		}
+	}
+
 	p.config.Logger.Debug("Forwarding request",
 		zap.String("service", targetService),
-		zap.String("path", path),
+		zap.String("path", targetPath),
 		zap.String("target_url", fullURL),
 	)
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Alert from './Alert'
@@ -110,7 +110,7 @@ describe('Alert Component', () => {
 
     it('should not auto-dismiss if autoDismissMs is 0 or undefined', async () => {
       const mockClose = vi.fn()
-      const { rerender } = render(
+      render(
         <Alert 
           isOpen={true} 
           message="Test" 

@@ -77,7 +77,7 @@ describe('Button Component', () => {
   })
 
   it('accepts all standard button attributes', () => {
-    const { container } = render(
+    render(
       <Button type="submit" aria-label="custom-label">
         Submit
       </Button>

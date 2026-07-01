@@ -214,12 +214,8 @@ describe('useAuth Hook', () => {
 
     const { result } = renderHook(() => useAuth())
 
-    let wasLoading = false
-
     act(() => {
-      result.current.login('12345678901234', 'senha123').then(() => {
-        wasLoading = result.current.loading
-      })
+      result.current.login('12345678901234', 'senha123')
     })
 
     await waitFor(() => {

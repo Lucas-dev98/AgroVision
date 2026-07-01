@@ -1,0 +1,259 @@
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background:
+    radial-gradient(circle at top left, rgba(129, 199, 132, 0.16), transparent 28%),
+    linear-gradient(180deg, #f6f8ef 0%, #eef4e4 100%);
+}
+
+.app-shell__sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  min-height: 100vh;
+  padding: 24px 18px;
+  background: linear-gradient(180deg, rgba(19, 78, 38, 0.98), rgba(12, 52, 26, 0.98));
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 16px 0 40px rgba(9, 35, 18, 0.18);
+}
+
+.app-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.app-shell__brand-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.app-shell__brand strong {
+  display: block;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+.app-shell__brand p {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.84rem;
+}
+
+.app-shell__nav {
+  display: grid;
+  gap: 10px;
+}
+
+.app-shell__nav-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.app-shell__nav-item:hover {
+  transform: translateX(2px);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.app-shell__nav-item--active {
+  background: linear-gradient(135deg, rgba(132, 204, 22, 0.3), rgba(76, 175, 80, 0.18));
+  color: #fff;
+  border-color: rgba(162, 230, 165, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.app-shell__nav-label {
+  font-weight: 700;
+}
+
+.app-shell__nav-description {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.app-shell__sidebar-card {
+  margin-top: auto;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.app-shell__sidebar-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+}
+
+.app-shell__sidebar-user {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.app-shell__sidebar-email {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.9rem;
+}
+
+.app-shell__sidebar-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.app-shell__workspace {
+  min-width: 0;
+  padding: 24px;
+}
+
+.app-shell__topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(250, 252, 245, 0.94));
+  border: 1px solid rgba(170, 195, 142, 0.25);
+  box-shadow: 0 18px 45px rgba(70, 93, 55, 0.11);
+}
+
+.app-shell__kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #5e7f48;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.app-shell__title {
+  font-size: clamp(1.7rem, 2.4vw, 2.5rem);
+  line-height: 1.05;
+  margin: 0;
+  color: #17341f;
+}
+
+.app-shell__subtitle {
+  margin-top: 10px;
+  max-width: 64ch;
+  color: #5f6f5c;
+}
+
+.app-shell__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.app-shell__status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(46, 125, 50, 0.12);
+  color: #1f6b2a;
+  font-weight: 700;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+}
+
+.app-shell__status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2e7d32;
+  box-shadow: 0 0 0 6px rgba(46, 125, 50, 0.12);
+}
+
+.app-shell__user-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(169, 188, 147, 0.25);
+  box-shadow: 0 10px 24px rgba(66, 86, 46, 0.08);
+}
+
+.app-shell__user-chip strong {
+  display: block;
+  color: #203423;
+}
+
+.app-shell__user-chip p {
+  color: #677a63;
+  font-size: 0.84rem;
+  margin-top: 2px;
+}
+
+.app-shell__user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2e7d32, #6fa84c);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.app-shell__content {
+  padding-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell__sidebar {
+    position: relative;
+    min-height: auto;
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+  }
+
+  .app-shell__workspace {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell__topbar {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .app-shell__topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .app-shell__user-chip {
+    width: 100%;
+  }
+}

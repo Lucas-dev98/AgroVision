@@ -1,6 +1,8 @@
 package router
 
 import (
+	"database/sql"
+
 	"github.com/agrovision/api-gateway/internal/config"
 	"github.com/agrovision/api-gateway/internal/handler"
 	"github.com/agrovision/api-gateway/internal/middleware"
@@ -8,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(cfg *config.Config) *gin.Engine {
+func SetupRouter(cfg *config.Config, db ...*sql.DB) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -31,6 +33,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		AnimalServiceURL:    cfg.AnimalServiceURL,
 		PesagemServiceURL:   cfg.PesagemServiceURL,
 		CotacaoServiceURL:   cfg.CotacaoServiceURL,
+		PropertyServiceURL:  cfg.PropertyServiceURL,
 		NutritionServiceURL: cfg.NutritionServiceURL,
 		VisionServiceURL:    cfg.VisionServiceURL,
 		MLServiceURL:        cfg.MLServiceURL,
@@ -52,19 +55,23 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// API v1 routes
 	apiV1 := router.Group("/api/v1")
+	apiV1.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok", "service": "api-gateway"})
+	})
 
 	// Authentication routes (no middleware required)
-	authHandler := handler.NewAuthHandler()
+	authHandler := handler.NewAuthHandler(cfg.JWTSecret, db...)
 	auth := apiV1.Group("/auth")
 	{
+		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
 		auth.POST("/logout", authHandler.Logout)
 		auth.POST("/refresh", authHandler.Refresh)
-		auth.GET("/profile", middleware.AuthMiddleware(), authHandler.GetProfile)
+		auth.GET("/profile", middleware.AuthMiddleware(cfg.JWTSecret), authHandler.GetProfile)
 	}
 
 	// Protect all other routes with authentication middleware
-	apiV1.Use(middleware.AuthMiddleware())
+	apiV1.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 
 	apiV1.GET("/dashboard", func(c *gin.Context) {
 		proxyHandler.Dashboard(c)
@@ -98,6 +105,16 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		cotacoes.POST("", func(c *gin.Context) { proxyHandler.RouteToService(c) })
 		cotacoes.PUT("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
 		cotacoes.DELETE("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+	}
+
+	// Property routes
+	properties := apiV1.Group("/properties")
+	{
+		properties.GET("", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		properties.GET("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		properties.POST("", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		properties.PUT("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		properties.DELETE("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
 	}
 
 	// Vision routes

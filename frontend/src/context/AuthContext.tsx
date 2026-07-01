@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import authService, { RegisterData } from '@services/authService'
+import authService, { RegisterData, ProfileUser } from '@services/authService'
 
 export interface AuthUser {
   cpf_cnpj: string
@@ -7,6 +7,13 @@ export interface AuthUser {
   nome: string
   user_id: number
 }
+
+const mapProfileToAuthUser = (profile: ProfileUser): AuthUser => ({
+  cpf_cnpj: profile.username,
+  email: profile.email,
+  nome: profile.username,
+  user_id: profile.id,
+})
 
 interface AuthContextType {
   isAuthenticated: boolean
@@ -38,10 +45,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const tokens = authService.getStoredTokens()
 
         if (tokens.access_token && authService.isTokenValid(tokens.access_token)) {
+          try {
+            const profile = await authService.getProfile()
+            setUser(mapProfileToAuthUser(profile))
+          } catch (err) {
+            console.error('Erro ao carregar perfil:', err)
+          }
           setIsAuthenticated(true)
         } else if (tokens.refresh_token) {
           try {
             await authService.refreshToken(tokens.refresh_token)
+            const profile = await authService.getProfile()
+            setUser(mapProfileToAuthUser(profile))
             setIsAuthenticated(true)
           } catch (err) {
             console.error('Erro ao renovar token:', err)
@@ -66,6 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       await authService.login(cpfCnpj, password)
+      const profile = await authService.getProfile()
+      setUser(mapProfileToAuthUser(profile))
       setIsAuthenticated(true)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login'
@@ -119,6 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       await authService.refreshToken(tokens.refresh_token)
+      const profile = await authService.getProfile()
+      setUser(mapProfileToAuthUser(profile))
       setIsAuthenticated(true)
     } catch (err) {
       console.error('Erro ao renovar token:', err)

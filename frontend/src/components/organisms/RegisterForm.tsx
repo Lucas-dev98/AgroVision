@@ -176,8 +176,7 @@ const RegisterForm: React.FC = () => {
               placeholder="Ex: João Silva"
               value={formData.nome}
               onChange={e => handleInputChange('nome', e.target.value)}
-              error={!!errors.nome}
-              errorMessage={errors.nome}
+              error={errors.nome}
               disabled={loading}
             />
           </div>
@@ -192,8 +191,7 @@ const RegisterForm: React.FC = () => {
               placeholder="Ex: 123.456.789-01"
               value={formData.cpf_cnpj}
               onChange={e => handleInputChange('cpf_cnpj', e.target.value)}
-              error={!!errors.cpf_cnpj}
-              errorMessage={errors.cpf_cnpj}
+              error={errors.cpf_cnpj}
               disabled={loading}
             />
           </div>
@@ -208,8 +206,7 @@ const RegisterForm: React.FC = () => {
               placeholder="Ex: joao@email.com"
               value={formData.email}
               onChange={e => handleInputChange('email', e.target.value)}
-              error={!!errors.email}
-              errorMessage={errors.email}
+              error={errors.email}
               disabled={loading}
             />
           </div>
@@ -224,8 +221,7 @@ const RegisterForm: React.FC = () => {
               placeholder="Mínimo 8 caracteres"
               value={formData.senha}
               onChange={e => handleInputChange('senha', e.target.value)}
-              error={!!errors.senha}
-              errorMessage={errors.senha}
+              error={errors.senha}
               disabled={loading}
             />
           </div>
@@ -242,8 +238,7 @@ const RegisterForm: React.FC = () => {
               onChange={e =>
                 handleInputChange('confirmarSenha', e.target.value)
               }
-              error={!!errors.confirmarSenha}
-              errorMessage={errors.confirmarSenha}
+              error={errors.confirmarSenha}
               disabled={loading}
             />
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Animal, Pesagem } from '@types/index'
+import { Animal, Pesagem } from '@/types'
 import apiService from '@services/api'
 import Modal from '@components/molecules/Modal'
 import AnimalForm from '@components/molecules/AnimalForm'
@@ -70,23 +70,32 @@ const AnimalDetailPage: React.FC = () => {
     setIsEditMode(false)
   }
 
-  const handleSave = async (formData: any) => {
+  const handleSave = async (formData: {
+    nome: string
+    raca: string
+    rfid: string
+    status?: 'ativo' | 'inativo' | 'vendido'
+    peso_inicial: number
+    data_nascimento: string
+  }) => {
     if (!animal) return
 
     setIsSubmitting(true)
     try {
+      const status = formData.status === 'vendido' ? 'VENDIDO' : 'ATIVO'
       const updatedAnimal = await apiService.updateAnimal(animal.id, {
         nome: formData.nome,
         raca: formData.raca,
         rfid: formData.rfid,
-        status: formData.status,
+        status,
         peso_inicial: formData.peso_inicial,
         data_nascimento: formData.data_nascimento,
       })
       setAnimal(updatedAnimal)
       setIsEditMode(false)
-    } catch (err: any) {
-      alert('Erro ao atualizar animal: ' + (err.message || 'Tente novamente'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Tente novamente'
+      alert('Erro ao atualizar animal: ' + message)
       console.error('Erro ao atualizar animal:', err)
     } finally {
       setIsSubmitting(false)
@@ -100,8 +109,9 @@ const AnimalDetailPage: React.FC = () => {
     try {
       await apiService.deleteAnimal(animal.id)
       navigate('/dashboard')
-    } catch (err: any) {
-      alert('Erro ao deletar animal: ' + (err.message || 'Tente novamente'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Tente novamente'
+      alert('Erro ao deletar animal: ' + message)
       console.error('Erro ao deletar animal:', err)
       setShowDeleteConfirm(false)
     } finally {
@@ -141,8 +151,9 @@ const AnimalDetailPage: React.FC = () => {
       // Recarregar pesagens
       const updatedPesagens = await apiService.getPesagens(animal.id).catch(() => [])
       setPesagens(updatedPesagens)
-    } catch (err: any) {
-      alert('Erro ao criar pesagem: ' + (err.message || 'Tente novamente'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Tente novamente'
+      alert('Erro ao criar pesagem: ' + message)
       console.error('Erro ao criar pesagem:', err)
     } finally {
       setIsPesagemSubmitting(false)
@@ -352,13 +363,14 @@ const AnimalDetailPage: React.FC = () => {
         </div>
       ) : (
         <div className="animal-detail-page__edit-form">
+          {/** AnimalForm usa status em minúsculo; mapeamos a partir do contrato da API */}
           <AnimalForm
             animal={{
               id: animal.id.toString(),
               nome: animal.nome,
               raca: animal.raca,
               rfid: animal.rfid,
-              status: (animal.status.toLowerCase() as any),
+              status: animal.status === 'VENDIDO' ? 'vendido' : 'ativo',
               peso_inicial: animal.peso_inicial,
               sexo: 'M',
               data_nascimento: animal.data_nascimento,

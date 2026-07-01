@@ -41,7 +41,14 @@ Ajudar o produtor rural a:
 
 ---
 
-## 👥 Público-Alvo
+seed.go
+auth.go
+ratelimit.go
+user.go
+user.go
+password.go
+middleware_test.go
+router_test.go## 👥 Público-Alvo
 
 ### Primário
 - **Cafeicultores** (Espírito Santo, Minas Gerais, São Paulo)

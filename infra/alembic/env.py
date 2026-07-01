@@ -15,9 +15,13 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
-# for 'autogenerate' support
-from app.models import Base
-target_metadata = Base.metadata
+# for 'autogenerate' support.
+# Some workspaces run migrations only from SQL revision files and do not expose app.models.
+try:
+    from app.models import Base  # type: ignore
+    target_metadata = Base.metadata
+except ModuleNotFoundError:
+    target_metadata = None
 
 
 def run_migrations_offline() -> None:

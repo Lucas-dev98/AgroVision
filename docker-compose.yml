@@ -88,7 +88,7 @@ services:
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/health"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -117,7 +117,7 @@ services:
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8001/health"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -146,7 +146,62 @@ services:
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Property Service - Go (porta 8103)
+  property-service:
+    build:
+      context: ./services/property-service
+      dockerfile: Dockerfile
+    container_name: agrovision-property-service-go
+    environment:
+      DEMO_MODE: "true"
+      SERVICE_PORT: 8081
+    ports:
+      - "${PROPERTY_SERVICE_PORT:-8103}:8081"
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+
+  # Nutrition Service - Go (porta 8106)
+  nutrition-service:
+    build:
+      context: ./services/nutrition-service
+      dockerfile: Dockerfile
+    container_name: agrovision-nutrition-service-go
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-agrovision}
+      DB_PASSWORD: ${DB_PASSWORD:-agrovision}
+      DB_NAME: ${DB_NAME:-agrovision}
+      SERVICE_PORT: 8088
+      DEMO_MODE: "false"
+      ANIMAL_SERVICE_URL: http://animal-service:8000
+    ports:
+      - "${NUTRITION_SERVICE_PORT:-8106}:8088"
+    depends_on:
+      db:
+        condition: service_healthy
+      animal-service:
+        condition: service_healthy
+    networks:
+      - agrovision
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8088/health"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -164,6 +219,14 @@ services:
       ANIMAL_SERVICE_URL: http://animal-service:8000
       PESAGEM_SERVICE_URL: http://pesagem-service:8001
       COTACAO_SERVICE_URL: http://cotacao-service:8002
+      PROPERTY_SERVICE_URL: http://property-service:8081
+      NUTRITION_SERVICE_URL: http://nutrition-service:8088
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-agrovision}
+      DB_PASSWORD: ${DB_PASSWORD:-agrovision}
+      DB_NAME: ${DB_NAME:-agrovision}
+      DB_SSLMODE: disable
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       REDIS_URL: redis://redis:6379/3
       PORT: 8080
@@ -175,10 +238,12 @@ services:
       - animal-service
       - pesagem-service
       - cotacao-service
+      - property-service
+      - nutrition-service
     networks:
       - agrovision
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
       interval: 15s
       timeout: 5s
       retries: 3

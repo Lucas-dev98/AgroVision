@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/agrovision/pesagem-service/internal/models"
-	"github.com/agrovision/pesagem-service/internal/repository"
 	"github.com/agrovision/pesagem-service/internal/service"
 	"go.uber.org/zap"
 )

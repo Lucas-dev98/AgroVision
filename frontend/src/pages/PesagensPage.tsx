@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pesagem } from '@types/index'
+import { Pesagem, Animal } from '@/types'
 import apiService from '@services/api'
 import Button from '@components/atoms/Button'
 import Modal from '@components/molecules/Modal'
@@ -32,7 +32,7 @@ const PesagensPage: React.FC = () => {
     hora: new Date().toTimeString().slice(0, 5),
     observacoes: '',
   })
-  const [animals, setAnimals] = useState<any[]>([])
+  const [animals, setAnimals] = useState<Animal[]>([])
 
   useEffect(() => {
     loadPesagens()

@@ -13,9 +13,16 @@ type Config struct {
 	Port                    int
 	Environment             string
 	LogLevel                string
+	DBHost                  string
+	DBPort                  string
+	DBUser                  string
+	DBPassword              string
+	DBName                  string
+	DBSSLMode               string
 	AnimalServiceURL        string
 	PesagemServiceURL       string
 	CotacaoServiceURL       string
+	PropertyServiceURL      string
 	NutritionServiceURL     string
 	VisionServiceURL        string
 	MLServiceURL            string
@@ -106,9 +113,16 @@ func Load() (*Config, error) {
 		Port:                    port,
 		Environment:             os.Getenv("ENVIRONMENT"),
 		LogLevel:                logLevel,
+		DBHost:                  getEnv("DB_HOST", "localhost"),
+		DBPort:                  getEnv("DB_PORT", "5432"),
+		DBUser:                  getEnv("DB_USER", "agrovision"),
+		DBPassword:              getEnv("DB_PASSWORD", "agrovision"),
+		DBName:                  getEnv("DB_NAME", "agrovision"),
+		DBSSLMode:               getEnv("DB_SSLMODE", "disable"),
 		AnimalServiceURL:        os.Getenv("ANIMAL_SERVICE_URL"),
 		PesagemServiceURL:       os.Getenv("PESAGEM_SERVICE_URL"),
 		CotacaoServiceURL:       os.Getenv("COTACAO_SERVICE_URL"),
+		PropertyServiceURL:      os.Getenv("PROPERTY_SERVICE_URL"),
 		NutritionServiceURL:     os.Getenv("NUTRITION_SERVICE_URL"),
 		VisionServiceURL:        os.Getenv("VISION_SERVICE_URL"),
 		MLServiceURL:            os.Getenv("ML_SERVICE_URL"),
@@ -121,4 +135,12 @@ func Load() (*Config, error) {
 		JWTSecret:               os.Getenv("JWT_SECRET"),
 		Logger:                  logger,
 	}, nil
+}
+
+func getEnv(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	return value
 }

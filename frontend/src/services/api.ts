@@ -1,7 +1,39 @@
 import axios, { AxiosInstance } from 'axios'
-import { Animal, Pesagem, Cotacao, DashboardData, PaginatedResponse } from '@types/index'
+import { Animal, Pesagem, Cotacao, DashboardData, PaginatedResponse, MLModel, PredictionResult, Property } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
+
+interface ApiAnimal {
+  id: number
+  name: string
+  breed: string
+  ear_tag: string
+  birth_date?: string
+  lote_id?: number
+  status: Animal['status']
+  peso_inicial?: number
+  created_at: string
+  updated_at: string
+}
+
+interface ListAnimalsResponse {
+  count?: number
+  data?: ApiAnimal[]
+}
+
+type GenericObject = Record<string, unknown>
+
+interface VisionResultsResponse {
+  results?: GenericObject[]
+}
+
+interface MLModelsResponse {
+  models?: MLModel[]
+}
+
+interface MLPredictionsResponse {
+  predictions?: PredictionResult[]
+}
 
 class ApiService {
   private client: AxiosInstance
@@ -27,7 +59,7 @@ class ApiService {
   /**
    * Mapear dados da API para o tipo Animal esperado pelo frontend
    */
-  private mapApiAnimalToAnimal(apiAnimal: any): Animal {
+  private mapApiAnimalToAnimal(apiAnimal: ApiAnimal): Animal {
     return {
       id: apiAnimal.id,
       nome: apiAnimal.name,
@@ -47,10 +79,10 @@ class ApiService {
    * Animal Service
    */
   async getAnimals(): Promise<PaginatedResponse<Animal>> {
-    const response = await this.client.get<any>('/animals')
+    const response = await this.client.get<ListAnimalsResponse>('/animals')
     const { count, data } = response.data
     return {
-      items: (data || []).map((animal: any) => this.mapApiAnimalToAnimal(animal)),
+      items: (data || []).map((animal) => this.mapApiAnimalToAnimal(animal)),
       total: count || 0,
       page: 1,
       size: count || 0
@@ -58,12 +90,12 @@ class ApiService {
   }
 
   async getAnimal(id: number): Promise<Animal> {
-    const response = await this.client.get<any>(`/animals/${id}`)
+    const response = await this.client.get<ApiAnimal>(`/animals/${id}`)
     return this.mapApiAnimalToAnimal(response.data)
   }
 
   async getAnimalByRfid(rfid: string): Promise<Animal> {
-    const response = await this.client.get<any>(`/animals/rfid/${rfid}`)
+    const response = await this.client.get<ApiAnimal>(`/animals/ear-tag/${rfid}`)
     return this.mapApiAnimalToAnimal(response.data)
   }
 
@@ -150,10 +182,40 @@ class ApiService {
   }
 
   /**
+   * Property Service
+   */
+  async getProperties(): Promise<Property[]> {
+    const response = await this.client.get<Property[] | { properties?: Property[] }>('/properties')
+    if (Array.isArray(response.data)) {
+      return response.data
+    }
+    return response.data.properties || []
+  }
+
+  async getProperty(id: string): Promise<Property> {
+    const response = await this.client.get<Property>(`/properties/${id}`)
+    return response.data
+  }
+
+  async createProperty(data: Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Property> {
+    const response = await this.client.post<Property>('/properties', data)
+    return response.data
+  }
+
+  async updateProperty(id: string, data: Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Property> {
+    const response = await this.client.put<Property>(`/properties/${id}`, data)
+    return response.data
+  }
+
+  async deleteProperty(id: string): Promise<void> {
+    await this.client.delete(`/properties/${id}`)
+  }
+
+  /**
    * Vision Service
    */
-  async detectAnimals(formData: FormData): Promise<any> {
-    const response = await this.client.post('/vision/detect', formData, {
+  async detectAnimals(formData: FormData): Promise<GenericObject> {
+    const response = await this.client.post<GenericObject>('/vision/detect', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -161,26 +223,26 @@ class ApiService {
     return response.data
   }
 
-  async getVisionResult(resultId: string): Promise<any> {
-    const response = await this.client.get(`/vision/results/${resultId}`)
+  async getVisionResult(resultId: string): Promise<GenericObject> {
+    const response = await this.client.get<GenericObject>(`/vision/results/${resultId}`)
     return response.data
   }
 
-  async listVisionResults(): Promise<any[]> {
-    const response = await this.client.get('/vision/results')
+  async listVisionResults(): Promise<GenericObject[]> {
+    const response = await this.client.get<VisionResultsResponse>('/vision/results')
     return response.data.results || []
   }
 
   /**
    * ML Service
    */
-  async getMLModels(): Promise<any[]> {
-    const response = await this.client.get('/ml/models')
+  async getMLModels(): Promise<MLModel[]> {
+    const response = await this.client.get<MLModelsResponse>('/ml/models')
     return response.data.models || []
   }
 
-  async getMLModel(modelId: string): Promise<any> {
-    const response = await this.client.get(`/ml/models/${modelId}`)
+  async getMLModel(modelId: string): Promise<GenericObject> {
+    const response = await this.client.get<GenericObject>(`/ml/models/${modelId}`)
     return response.data
   }
 
@@ -188,29 +250,29 @@ class ApiService {
     epochs: number
     batch_size: number
     learning_rate: number
-  }): Promise<any> {
-    const response = await this.client.post('/ml/train', {
+  }): Promise<GenericObject> {
+    const response = await this.client.post<GenericObject>('/ml/train', {
       model_id: modelId,
       ...params,
     })
     return response.data
   }
 
-  async predict(modelId: string, input: string): Promise<any> {
-    const response = await this.client.post('/ml/predict', {
+  async predict(modelId: string, input: string): Promise<PredictionResult> {
+    const response = await this.client.post<PredictionResult>('/ml/predict', {
       model_id: modelId,
       input,
     })
     return response.data
   }
 
-  async getMLPredictions(): Promise<any[]> {
-    const response = await this.client.get('/ml/predictions')
+  async getMLPredictions(): Promise<PredictionResult[]> {
+    const response = await this.client.get<MLPredictionsResponse>('/ml/predictions')
     return response.data.predictions || []
   }
 
-  async getMLPrediction(predictionId: string): Promise<any> {
-    const response = await this.client.get(`/ml/predictions/${predictionId}`)
+  async getMLPrediction(predictionId: string): Promise<GenericObject> {
+    const response = await this.client.get<GenericObject>(`/ml/predictions/${predictionId}`)
     return response.data
   }
 

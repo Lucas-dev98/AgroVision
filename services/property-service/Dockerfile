@@ -1,1 +1,21 @@
-FROM golang:1.21-alpine AS builder\n\nWORKDIR /app\n\nCOPY go.mod go.sum ./\nRUN go mod download\n\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -o property-service ./cmd\n\n# Final stage\nFROM alpine:latest\n\nRUN apk --no-cache add ca-certificates\n\nWORKDIR /root/\n\nCOPY --from=builder /app/property-service .\n\nEXPOSE 8081\n\nCMD [\"./property-service\"]\n"
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o property-service ./cmd
+
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+COPY --from=builder /app/property-service .
+
+EXPOSE 8081
+
+CMD ["./property-service"]

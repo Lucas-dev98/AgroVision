@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Animal, PaginatedResponse } from '@types/index'
+import { Animal, PaginatedResponse } from '@/types'
 import apiService from '@services/api'
 
 interface UseAnimalsReturn {

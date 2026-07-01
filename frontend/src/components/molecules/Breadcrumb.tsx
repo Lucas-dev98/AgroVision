@@ -30,7 +30,6 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
       <ol className="breadcrumb__list">
         {items.map((item, index) => {
           const isLast = index === items.length - 1
-          const isFirst = index === 0
 
           return (
             <li

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
-import { Animal, Pesagem, Cotacao, DashboardData } from '@types/index'
+import { Animal, Pesagem, Cotacao, DashboardData } from '@/types'
 
 // Mock axios before importing apiService
 vi.mock('axios')

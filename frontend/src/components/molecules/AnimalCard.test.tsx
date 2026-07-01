@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AnimalCard from './AnimalCard'
 
 describe('AnimalCard Component', () => {
-  const mockAnimal = {
+  const mockAnimal: React.ComponentProps<typeof AnimalCard>['animal'] = {
     id: '507f1f77bcf86cd799439011',
     nome: 'Boi do Pasto',
     raca: 'Nelore',
@@ -76,14 +76,20 @@ describe('AnimalCard Component', () => {
     })
 
     it('should display yellow badge for inactive status', () => {
-      const inactiveAnimal = { ...mockAnimal, status: 'inativo' }
+      const inactiveAnimal: React.ComponentProps<typeof AnimalCard>['animal'] = {
+        ...mockAnimal,
+        status: 'inativo',
+      }
       render(<AnimalCard animal={inactiveAnimal} />)
       const badge = screen.getByText(/inativo/i).closest('.animal-card__status')
       expect(badge).toHaveClass('animal-card__status--inactive')
     })
 
     it('should display red badge for sold status', () => {
-      const soldAnimal = { ...mockAnimal, status: 'vendido' }
+      const soldAnimal: React.ComponentProps<typeof AnimalCard>['animal'] = {
+        ...mockAnimal,
+        status: 'vendido',
+      }
       render(<AnimalCard animal={soldAnimal} />)
       const badge = screen.getByText(/vendido/i).closest('.animal-card__status')
       expect(badge).toHaveClass('animal-card__status--sold')

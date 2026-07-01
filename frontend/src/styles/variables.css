@@ -14,7 +14,7 @@
   --secondary-light: #A5D6A7;   /* Verde Super Claro (backgrounds) */
 
   /* 🤍 CORES NEUTRAS */
-  --background: #F5F5DC;        /* Bege (fundo geral) */
+  --background: #F3F6EA;        /* Fundo geral mais suave */
   --card: #FFFFFF;              /* Branco (cards, inputs, modais) */
   --border-light: #E0E0E0;      /* Cinza claro (bordas, divisores) */
   --text-secondary: #9E9E9E;    /* Cinza médio (textos secundários) */
@@ -38,8 +38,7 @@
   --spacing-2xl: 48px;
 
   /* 🔤 FONTES */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  --font-family: 'Segoe UI Variable', 'Aptos', 'Segoe UI', -apple-system, BlinkMacSystemFont,
     sans-serif;
   --font-size-xs: 12px;
   --font-size-sm: 14px;

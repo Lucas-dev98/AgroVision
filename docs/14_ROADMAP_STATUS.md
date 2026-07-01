@@ -127,6 +127,8 @@ TOTAL:                 142 testes
 - Endpoint de resumo diário por propriedade com filtro opcional por animal
 - Persistência PostgreSQL com fallback em memória (DEMO mode)
 - Integração com Animal Service
+- Integração com API Gateway Go (/api/v1/nutrition/*)
+- Integração no docker-compose (serviço dedicado + NUTRITION_SERVICE_URL no gateway)
 - Status: Em andamento (histórico por animal + resumo diário + persistência PostgreSQL + testes TDD de agregação/validação)
 
 ### ⏳ FASE 14: SAÚDE SERVICE
@@ -174,7 +176,7 @@ FASE 9:  ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
 FASE 10: ████████████████████ 100% ✅
 FASE 11: ████████████████████ 100% ✅
 FASE 12: ████████████████████ 100% ✅
-FASE 13: ███████████████░░░░░  75%  🚧
+FASE 13: █████████████████░░░  85%  🚧
 ...
 FASE 17: ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
 
@@ -246,7 +248,7 @@ curl http://localhost:8000/api/v1/animais
 ## 📞 Próximos Passos Imediatos
 
 1. **Validar Proxy com Docker**: Testar com stack completa rodando
-2. **FASE 13 (Nutrição)**: Concluir integração com Animal Service e migrations/DDL da tabela nutrition_records no bootstrap de ambiente
+2. **FASE 13 (Nutrição)**: Validar stack docker completa (healthchecks + curls via gateway) e finalizar documentação operacional
 3. **Rate Limiting**: Revisar FASE 8B no backlog legado (status técnico já atendido no gateway Go)
 4. **Logging**: Adicionar logging centralizado para observability
 

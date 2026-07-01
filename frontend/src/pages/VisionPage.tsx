@@ -52,7 +52,7 @@ const VisionPage: React.FC = () => {
       const formData = new FormData()
       formData.append('image', selectedImage)
       
-      const result = await apiService.detectAnimals(formData)
+      const result = await apiService.detectAnimals(formData) as unknown as DetectionResult
       
       setDetectionResults([result, ...detectionResults])
       setSelectedImage(null)

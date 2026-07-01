@@ -36,6 +36,12 @@ export interface TokensData {
   refresh_token: string | null
 }
 
+export interface ProfileUser {
+  id: number
+  username: string
+  email: string
+}
+
 class AuthService {
   private client: AxiosInstance
 
@@ -45,6 +51,14 @@ class AuthService {
       headers: {
         'Content-Type': 'application/json',
       },
+    })
+
+    this.client.interceptors.request.use((config) => {
+      const token = localStorage.getItem('access_token')
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+      return config
     })
   }
 
@@ -123,6 +137,16 @@ class AuthService {
       localStorage.setItem('refresh_token', response.data.refresh_token)
 
       return response.data
+    } catch (error) {
+      this.handleError(error)
+      throw error
+    }
+  }
+
+  async getProfile(): Promise<ProfileUser> {
+    try {
+      const response = await this.client.get<{ user: ProfileUser }>('/auth/profile')
+      return response.data.user
     } catch (error) {
       this.handleError(error)
       throw error

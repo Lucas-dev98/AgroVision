@@ -1,0 +1,139 @@
+.property-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.property-hero,
+.property-stat-card,
+.property-card,
+.property-empty,
+.property-alert {
+  border-radius: 24px;
+  border: 1px solid rgba(143, 170, 130, 0.24);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 36px rgba(76, 102, 63, 0.08);
+}
+
+.property-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px;
+}
+
+.property-hero__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #66815a;
+  margin-bottom: 10px;
+}
+
+.property-hero h2 {
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 1.05;
+  color: #17341f;
+}
+
+.property-hero p {
+  margin-top: 12px;
+  color: #5f6f5c;
+  max-width: 60ch;
+}
+
+.property-hero__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.property-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.property-stat-card {
+  padding: 20px;
+}
+
+.property-stat-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 2rem;
+  color: #17341f;
+}
+
+.property-stat-card p,
+.property-card__meta,
+.property-empty,
+.property-alert {
+  color: #5f6f5c;
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.property-card {
+  padding: 20px;
+}
+
+.property-card__meta {
+  display: grid;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.property-card__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.property-empty,
+.property-alert {
+  padding: 18px 20px;
+}
+
+.property-alert {
+  border-color: rgba(211, 47, 47, 0.24);
+  background: rgba(255, 245, 245, 0.96);
+  color: #9d1f1f;
+}
+
+.property-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.property-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.property-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 960px) {
+  .property-hero {
+    flex-direction: column;
+  }
+
+  .property-stats,
+  .property-form__row {
+    grid-template-columns: 1fr;
+  }
+}
