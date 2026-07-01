@@ -13,7 +13,7 @@ import (
 )
 
 func setupRouter() *mux.Router {
-	repo := repository.NewNutritionRepository()
+	repo := repository.NewNutritionRepository(nil)
 	h := NewNutritionHandler(repo)
 	r := mux.NewRouter()
 	h.RegisterRoutes(r)
