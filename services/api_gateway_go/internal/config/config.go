@@ -16,6 +16,7 @@ type Config struct {
 	AnimalServiceURL        string
 	PesagemServiceURL       string
 	CotacaoServiceURL       string
+	NutritionServiceURL     string
 	VisionServiceURL        string
 	MLServiceURL            string
 	RateLimitRequests       int
@@ -108,6 +109,7 @@ func Load() (*Config, error) {
 		AnimalServiceURL:        os.Getenv("ANIMAL_SERVICE_URL"),
 		PesagemServiceURL:       os.Getenv("PESAGEM_SERVICE_URL"),
 		CotacaoServiceURL:       os.Getenv("COTACAO_SERVICE_URL"),
+		NutritionServiceURL:     os.Getenv("NUTRITION_SERVICE_URL"),
 		VisionServiceURL:        os.Getenv("VISION_SERVICE_URL"),
 		MLServiceURL:            os.Getenv("ML_SERVICE_URL"),
 		RateLimitRequests:       rateLimitRequests,

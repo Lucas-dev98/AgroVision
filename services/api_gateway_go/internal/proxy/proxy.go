@@ -14,16 +14,17 @@ import (
 )
 
 type ProxyConfig struct {
-	AnimalServiceURL  string
-	PesagemServiceURL string
-	CotacaoServiceURL string
-	VisionServiceURL  string
-	MLServiceURL      string
-	CircuitThreshold  int
-	CircuitOpenWindow time.Duration
-	UpstreamTimeout   time.Duration
-	CacheTTL          time.Duration
-	Logger            *zap.Logger
+	AnimalServiceURL    string
+	PesagemServiceURL   string
+	CotacaoServiceURL   string
+	NutritionServiceURL string
+	VisionServiceURL    string
+	MLServiceURL        string
+	CircuitThreshold    int
+	CircuitOpenWindow   time.Duration
+	UpstreamTimeout     time.Duration
+	CacheTTL            time.Duration
+	Logger              *zap.Logger
 }
 
 type Proxy struct {
@@ -160,6 +161,9 @@ func (p *Proxy) RouteToService(c *gin.Context) {
 	case strings.HasPrefix(path, "/api/v1/cotacoes"):
 		targetURL = p.config.CotacaoServiceURL
 		targetService = "cotacao"
+	case strings.HasPrefix(path, "/api/v1/nutrition"):
+		targetURL = p.config.NutritionServiceURL
+		targetService = "nutrition"
 	case strings.HasPrefix(path, "/api/v1/vision"):
 		targetURL = p.config.VisionServiceURL
 		targetService = "vision"
@@ -250,6 +254,7 @@ func (p *Proxy) Dashboard(c *gin.Context) {
 		{Service: "animal", URL: p.config.AnimalServiceURL},
 		{Service: "pesagem", URL: p.config.PesagemServiceURL},
 		{Service: "cotacao", URL: p.config.CotacaoServiceURL},
+		{Service: "nutrition", URL: p.config.NutritionServiceURL},
 		{Service: "vision", URL: p.config.VisionServiceURL},
 		{Service: "ml", URL: p.config.MLServiceURL},
 	}
@@ -434,6 +439,8 @@ func (p *Proxy) invalidateServiceCache(service string) {
 		prefix = "GET:" + strings.TrimSuffix(p.config.PesagemServiceURL, "/") + "/api/v1/pesagens"
 	case "cotacao":
 		prefix = "GET:" + strings.TrimSuffix(p.config.CotacaoServiceURL, "/") + "/api/v1/cotacoes"
+	case "nutrition":
+		prefix = "GET:" + strings.TrimSuffix(p.config.NutritionServiceURL, "/") + "/api/v1/nutrition"
 	case "vision":
 		prefix = "GET:" + strings.TrimSuffix(p.config.VisionServiceURL, "/") + "/api/v1/vision"
 	case "ml":

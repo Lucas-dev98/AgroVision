@@ -13,12 +13,13 @@ import (
 
 func TestProxyInitialization(t *testing.T) {
 	cfg := proxy.ProxyConfig{
-		AnimalServiceURL:  "http://localhost:9000",
-		PesagemServiceURL: "http://localhost:8001",
-		CotacaoServiceURL: "http://localhost:8002",
-		VisionServiceURL:  "http://localhost:8003",
-		MLServiceURL:      "http://localhost:8004",
-		Logger:            zap.NewNop(),
+		AnimalServiceURL:    "http://localhost:9000",
+		PesagemServiceURL:   "http://localhost:8001",
+		CotacaoServiceURL:   "http://localhost:8002",
+		NutritionServiceURL: "http://localhost:8005",
+		VisionServiceURL:    "http://localhost:8003",
+		MLServiceURL:        "http://localhost:8004",
+		Logger:              zap.NewNop(),
 	}
 
 	p := proxy.NewProxy(cfg)
@@ -53,17 +54,18 @@ func TestProxyWithMockUpstream(t *testing.T) {
 
 func TestConfigurationValues(t *testing.T) {
 	cfg := &config.Config{
-		Port:              8000,
-		Environment:       "test",
-		LogLevel:          "debug",
-		AnimalServiceURL:  "http://localhost:9000",
-		PesagemServiceURL: "http://localhost:8001",
-		CotacaoServiceURL: "http://localhost:8002",
-		VisionServiceURL:  "http://localhost:8003",
-		MLServiceURL:      "http://localhost:8004",
-		RateLimitRequests: 100,
-		JWTSecret:         "test-secret",
-		Logger:            zap.NewNop(),
+		Port:                8000,
+		Environment:         "test",
+		LogLevel:            "debug",
+		AnimalServiceURL:    "http://localhost:9000",
+		PesagemServiceURL:   "http://localhost:8001",
+		CotacaoServiceURL:   "http://localhost:8002",
+		NutritionServiceURL: "http://localhost:8005",
+		VisionServiceURL:    "http://localhost:8003",
+		MLServiceURL:        "http://localhost:8004",
+		RateLimitRequests:   100,
+		JWTSecret:           "test-secret",
+		Logger:              zap.NewNop(),
 	}
 
 	assert.Equal(t, 8000, cfg.Port)
@@ -85,6 +87,7 @@ func TestEndpointRoutes(t *testing.T) {
 		{"Animals List", "/api/v1/animals", "GET", http.StatusBadGateway},
 		{"Pesagens List", "/api/v1/pesagens", "GET", http.StatusBadGateway},
 		{"Cotacoes List", "/api/v1/cotacoes", "GET", http.StatusBadGateway},
+		{"Nutrition List", "/api/v1/nutrition", "GET", http.StatusBadGateway},
 		{"Vision Detect", "/api/v1/vision/detect", "POST", http.StatusBadGateway},
 		{"ML Models", "/api/v1/ml/models", "GET", http.StatusBadGateway},
 		{"Not Found", "/not-found", "GET", http.StatusNotFound},
@@ -190,6 +193,7 @@ func TestServiceURLConfiguration(t *testing.T) {
 		{"Animal Service", "http://localhost:9000"},
 		{"Pesagem Service", "http://localhost:8001"},
 		{"Cotacao Service", "http://localhost:8002"},
+		{"Nutrition Service", "http://localhost:8005"},
 		{"Vision Service", "http://localhost:8003"},
 		{"ML Service", "http://localhost:8004"},
 	}

@@ -28,16 +28,17 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// Create proxy
 	proxyConfig := proxy.ProxyConfig{
-		AnimalServiceURL:  cfg.AnimalServiceURL,
-		PesagemServiceURL: cfg.PesagemServiceURL,
-		CotacaoServiceURL: cfg.CotacaoServiceURL,
-		VisionServiceURL:  cfg.VisionServiceURL,
-		MLServiceURL:      cfg.MLServiceURL,
-		CircuitThreshold:  cfg.CircuitFailureThreshold,
-		CircuitOpenWindow: cfg.CircuitOpenTimeout,
-		UpstreamTimeout:   cfg.UpstreamTimeout,
-		CacheTTL:          cfg.CacheTTL,
-		Logger:            cfg.Logger,
+		AnimalServiceURL:    cfg.AnimalServiceURL,
+		PesagemServiceURL:   cfg.PesagemServiceURL,
+		CotacaoServiceURL:   cfg.CotacaoServiceURL,
+		NutritionServiceURL: cfg.NutritionServiceURL,
+		VisionServiceURL:    cfg.VisionServiceURL,
+		MLServiceURL:        cfg.MLServiceURL,
+		CircuitThreshold:    cfg.CircuitFailureThreshold,
+		CircuitOpenWindow:   cfg.CircuitOpenTimeout,
+		UpstreamTimeout:     cfg.UpstreamTimeout,
+		CacheTTL:            cfg.CacheTTL,
+		Logger:              cfg.Logger,
 	}
 	proxyHandler := proxy.NewProxy(proxyConfig)
 
@@ -113,6 +114,18 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		ml.GET("/models/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
 		ml.POST("/predict", func(c *gin.Context) { proxyHandler.RouteToService(c) })
 		ml.POST("/train", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+	}
+
+	// Nutrition routes
+	nutrition := apiV1.Group("/nutrition")
+	{
+		nutrition.GET("", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		nutrition.POST("", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		nutrition.GET("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		nutrition.PUT("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		nutrition.DELETE("/:id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		nutrition.GET("/animal/:animal_id", func(c *gin.Context) { proxyHandler.RouteToService(c) })
+		nutrition.GET("/summary/daily", func(c *gin.Context) { proxyHandler.RouteToService(c) })
 	}
 
 	// Catch-all route for any other paths
