@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -37,13 +38,17 @@ func main() {
 		if err = db.Ping(); err != nil {
 			log.Fatalf("failed to ping database: %v", err)
 		}
+		if err = repository.EnsureSchema(context.Background(), db); err != nil {
+			log.Fatalf("failed to ensure nutrition schema: %v", err)
+		}
 		log.Println("connected to PostgreSQL")
 	} else {
 		log.Println("running in DEMO mode (in-memory repository)")
 	}
 
 	repo := repository.NewNutritionRepository(db)
-	nutritionHandler := handler.NewNutritionHandler(repo)
+	animalServiceURL := getEnv("ANIMAL_SERVICE_URL", "")
+	nutritionHandler := handler.NewNutritionHandler(repo, animalServiceURL)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

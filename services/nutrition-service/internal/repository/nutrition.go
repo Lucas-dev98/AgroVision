@@ -22,6 +22,36 @@ func NewNutritionRepository(db *sql.DB) *NutritionRepository {
 	return &NutritionRepository{db: db, records: make(map[string]*models.NutritionRecord)}
 }
 
+func EnsureSchema(ctx context.Context, db *sql.DB) error {
+	if db == nil {
+		return nil
+	}
+
+	const ddl = `
+		CREATE TABLE IF NOT EXISTS nutrition_records (
+			id VARCHAR(36) PRIMARY KEY,
+			property_id VARCHAR(100) NOT NULL,
+			animal_id VARCHAR(100) NOT NULL,
+			feed_type VARCHAR(100) NOT NULL,
+			quantity_kg NUMERIC(12,3) NOT NULL,
+			meal_time TIMESTAMP NOT NULL,
+			notes TEXT,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_nutrition_records_property_id ON nutrition_records(property_id);
+		CREATE INDEX IF NOT EXISTS idx_nutrition_records_animal_id ON nutrition_records(animal_id);
+		CREATE INDEX IF NOT EXISTS idx_nutrition_records_meal_time ON nutrition_records(meal_time);
+	`
+
+	if _, err := db.ExecContext(ctx, ddl); err != nil {
+		return fmt.Errorf("ensure nutrition schema: %w", err)
+	}
+
+	return nil
+}
+
 func (r *NutritionRepository) Create(ctx context.Context, record *models.NutritionRecord) error {
 	if r.db == nil {
 		return r.createInMemory(record)

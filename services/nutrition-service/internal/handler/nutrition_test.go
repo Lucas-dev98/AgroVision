@@ -13,8 +13,12 @@ import (
 )
 
 func setupRouter() *mux.Router {
+	return setupRouterWithAnimalService("")
+}
+
+func setupRouterWithAnimalService(animalServiceURL string) *mux.Router {
 	repo := repository.NewNutritionRepository(nil)
-	h := NewNutritionHandler(repo)
+	h := NewNutritionHandler(repo, animalServiceURL)
 	r := mux.NewRouter()
 	h.RegisterRoutes(r)
 	return r
@@ -301,5 +305,45 @@ func TestDailySummaryInvalidDate(t *testing.T) {
 
 	if payload["error"] != "date must be in YYYY-MM-DD format" {
 		t.Fatalf("unexpected error message: %v", payload["error"])
+	}
+}
+
+func TestCreateNutritionInvalidAnimal(t *testing.T) {
+	animalService := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/animals/animal-missing" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer animalService.Close()
+
+	r := setupRouterWithAnimalService(animalService.URL)
+
+	payload := map[string]any{
+		"property_id": "prop-1",
+		"animal_id":   "animal-missing",
+		"feed_type":   "silagem",
+		"quantity_kg": 8.5,
+		"meal_time":   time.Now().UTC().Format(time.RFC3339),
+	}
+	body, _ := json.Marshal(payload)
+
+	req := httptest.NewRequest(http.MethodPost, "/nutrition", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d body=%s", w.Code, w.Body.String())
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+
+	if response["error"] != "animal_id not found" {
+		t.Fatalf("unexpected error message: %v", response["error"])
 	}
 }

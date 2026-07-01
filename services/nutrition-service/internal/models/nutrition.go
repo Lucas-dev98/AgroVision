@@ -9,6 +9,7 @@ import (
 var (
 	ErrPropertyIDRequired = errors.New("property_id is required")
 	ErrAnimalIDRequired   = errors.New("animal_id is required")
+	ErrAnimalNotFound     = errors.New("animal_id not found")
 	ErrInvalidDateFormat  = errors.New("date must be in YYYY-MM-DD format")
 	ErrFeedTypeRequired   = errors.New("feed_type is required")
 	ErrQuantityInvalid    = errors.New("quantity_kg must be greater than zero")

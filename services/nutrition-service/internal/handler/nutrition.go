@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -13,11 +16,19 @@ import (
 )
 
 type NutritionHandler struct {
-	repo *repository.NutritionRepository
+	repo             *repository.NutritionRepository
+	animalServiceURL string
+	httpClient       *http.Client
 }
 
-func NewNutritionHandler(repo *repository.NutritionRepository) *NutritionHandler {
-	return &NutritionHandler{repo: repo}
+func NewNutritionHandler(repo *repository.NutritionRepository, animalServiceURL string) *NutritionHandler {
+	return &NutritionHandler{
+		repo:             repo,
+		animalServiceURL: strings.TrimSpace(animalServiceURL),
+		httpClient: &http.Client{
+			Timeout: 2 * time.Second,
+		},
+	}
 }
 
 func (h *NutritionHandler) RegisterRoutes(router *mux.Router) {
@@ -46,6 +57,15 @@ func (h *NutritionHandler) CreateNutrition(w http.ResponseWriter, r *http.Reques
 
 	if err := req.Validate(); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.validateAnimalID(r.Context(), req.AnimalID); err != nil {
+		if errors.Is(err, models.ErrAnimalNotFound) {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		writeError(w, http.StatusBadGateway, "failed to validate animal")
 		return
 	}
 
@@ -190,6 +210,15 @@ func (h *NutritionHandler) UpdateNutrition(w http.ResponseWriter, r *http.Reques
 	current.MealTime = req.MealTime
 	current.Notes = req.Notes
 
+	if err = h.validateAnimalID(r.Context(), current.AnimalID); err != nil {
+		if errors.Is(err, models.ErrAnimalNotFound) {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		writeError(w, http.StatusBadGateway, "failed to validate animal")
+		return
+	}
+
 	if err = h.repo.Update(r.Context(), current); err != nil {
 		if errors.Is(err, models.ErrRecordNotFound) {
 			writeError(w, http.StatusNotFound, err.Error())
@@ -230,4 +259,43 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 
 func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{"error": message})
+}
+
+func (h *NutritionHandler) validateAnimalID(ctx context.Context, animalID string) error {
+	animalID = strings.TrimSpace(animalID)
+	if animalID == "" {
+		return nil
+	}
+	if h.animalServiceURL == "" {
+		return nil
+	}
+
+	baseURL, err := url.Parse(h.animalServiceURL)
+	if err != nil {
+		return fmt.Errorf("invalid ANIMAL_SERVICE_URL: %w", err)
+	}
+
+	targetURL := strings.TrimSuffix(baseURL.String(), "/") + "/animals/" + url.PathEscape(animalID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
+	if err != nil {
+		return fmt.Errorf("create animal validation request: %w", err)
+	}
+
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("animal validation request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return models.ErrAnimalNotFound
+	}
+	if resp.StatusCode >= 500 {
+		return fmt.Errorf("animal service unavailable: status=%d", resp.StatusCode)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("animal validation rejected: status=%d", resp.StatusCode)
+	}
+
+	return nil
 }
