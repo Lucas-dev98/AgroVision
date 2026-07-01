@@ -1,4 +1,4 @@
-module github.com/agrovision/api-gateway
+module github.com/lucasbastos/agrovision/services/api-gateway
 
 go 1.21
 
