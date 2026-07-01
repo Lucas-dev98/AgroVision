@@ -49,6 +49,28 @@ func (r *NutritionRepository) ListByPropertyID(_ context.Context, propertyID str
 	return result, nil
 }
 
+func (r *NutritionRepository) ListByAnimalID(_ context.Context, animalID, propertyID string) ([]*models.NutritionRecord, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	result := make([]*models.NutritionRecord, 0)
+	for _, rec := range r.records {
+		if rec.AnimalID != animalID {
+			continue
+		}
+		if propertyID != "" && rec.PropertyID != propertyID {
+			continue
+		}
+		result = append(result, cloneRecord(rec))
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].MealTime.After(result[j].MealTime)
+	})
+
+	return result, nil
+}
+
 func (r *NutritionRepository) GetByID(_ context.Context, id string) (*models.NutritionRecord, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

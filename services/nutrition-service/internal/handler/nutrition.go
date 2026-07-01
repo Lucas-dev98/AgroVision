@@ -22,6 +22,7 @@ func NewNutritionHandler(repo *repository.NutritionRepository) *NutritionHandler
 func (h *NutritionHandler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/nutrition", h.CreateNutrition).Methods(http.MethodPost)
 	router.HandleFunc("/nutrition", h.ListNutrition).Methods(http.MethodGet)
+	router.HandleFunc("/nutrition/animal/{animal_id}", h.ListNutritionByAnimal).Methods(http.MethodGet)
 	router.HandleFunc("/nutrition/{id}", h.GetNutrition).Methods(http.MethodGet)
 	router.HandleFunc("/nutrition/{id}", h.UpdateNutrition).Methods(http.MethodPut)
 	router.HandleFunc("/nutrition/{id}", h.DeleteNutrition).Methods(http.MethodDelete)
@@ -76,6 +77,27 @@ func (h *NutritionHandler) ListNutrition(w http.ResponseWriter, r *http.Request)
 	records, err := h.repo.ListByPropertyID(r.Context(), propertyID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to list nutrition records")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, records)
+}
+
+func (h *NutritionHandler) ListNutritionByAnimal(w http.ResponseWriter, r *http.Request) {
+	animalID := strings.TrimSpace(mux.Vars(r)["animal_id"])
+	if animalID == "" {
+		writeError(w, http.StatusBadRequest, models.ErrAnimalIDRequired.Error())
+		return
+	}
+
+	propertyID := strings.TrimSpace(r.Header.Get("X-Property-ID"))
+	if propertyID == "" {
+		propertyID = strings.TrimSpace(r.URL.Query().Get("property_id"))
+	}
+
+	records, err := h.repo.ListByAnimalID(r.Context(), animalID, propertyID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to list nutrition records by animal")
 		return
 	}
 
