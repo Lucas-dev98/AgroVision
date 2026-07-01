@@ -1,1 +1,73 @@
-package main\n\nimport (\n\t\"database/sql\"\n\t\"fmt\"\n\t\"log\"\n\t\"net/http\"\n\t\"os\"\n\n\t_ \"github.com/lib/pq\"\n)\n\nfunc main() {\n\t// Load environment variables\n\tdbHost := os.Getenv(\"DB_HOST\")\n\tif dbHost == \"\" {\n\t\tdbHost = \"localhost\"\n\t}\n\tdbPort := os.Getenv(\"DB_PORT\")\n\tif dbPort == \"\" {\n\t\tdbPort = \"5432\"\n\t}\n\tdbUser := os.Getenv(\"DB_USER\")\n\tif dbUser == \"\" {\n\t\tdbUser = \"postgres\"\n\t}\n\tdbPassword := os.Getenv(\"DB_PASSWORD\")\n\tif dbPassword == \"\" {\n\t\tdbPassword = \"agrovision\"\n\t}\n\tdbName := os.Getenv(\"DB_NAME\")\n\tif dbName == \"\" {\n\t\tdbName = \"agrovision_db\"\n\t}\n\n\t// Connection string\n\tpsqlInfo := fmt.Sprintf(\"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable\",\n\t\tdbHost, dbPort, dbUser, dbPassword, dbName)\n\n\t// Connect to database\n\tdb, err := sql.Open(\"postgres\", psqlInfo)\n\tif err != nil {\n\t\tlog.Fatalf(\"Failed to connect to database: %v\", err)\n\t}\n\tdefer db.Close()\n\n\t// Verify connection\n\tif err := db.Ping(); err != nil {\n\t\tlog.Fatalf(\"Failed to ping database: %v\", err)\n\t}\n\n\tlog.Println(\"✅ Connected to PostgreSQL\")\n\n\t// Setup HTTP server\n\tport := os.Getenv(\"SERVICE_PORT\")\n\tif port == \"\" {\n\t\tport = \"8084\"\n\t}\n\n\thttp.HandleFunc(\"/health\", func(w http.ResponseWriter, r *http.Request) {\n\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n\t\tw.WriteHeader(http.StatusOK)\n\t\tw.Write([]byte(`{\"status\":\"ok\"}`))\n\t})\n\n\tlog.Printf(\"🚀 Stock Service running on port %s\", port)\n\tif err := http.ListenAndServe(\":\"+port, nil); err != nil {\n\t\tlog.Fatalf(\"Server failed: %v\", err)\n\t}\n}\n"
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/agrovision/stock-service/internal/handler"
+	"github.com/agrovision/stock-service/internal/repository"
+	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
+)
+
+func main() {
+	demoMode := getEnv("DEMO_MODE", "true") == "true"
+	var db *sql.DB
+
+	if !demoMode {
+		dbHost := getEnv("DB_HOST", "localhost")
+		dbPort := getEnv("DB_PORT", "5432")
+		dbUser := getEnv("DB_USER", "postgres")
+		dbPassword := getEnv("DB_PASSWORD", "agrovision")
+		dbName := getEnv("DB_NAME", "agrovision_db")
+
+		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+			dbHost, dbPort, dbUser, dbPassword, dbName)
+
+		var err error
+		db, err = sql.Open("postgres", psqlInfo)
+		if err != nil {
+			log.Fatalf("failed to open database connection: %v", err)
+		}
+		defer db.Close()
+
+		if err = db.Ping(); err != nil {
+			log.Fatalf("failed to ping database: %v", err)
+		}
+		log.Println("connected to PostgreSQL")
+	} else {
+		log.Println("running in DEMO mode (in-memory repository)")
+	}
+
+	repo := repository.NewStockRepository(db)
+	stockHandler := handler.NewStockHandler(repo)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		mode := "database"
+		if demoMode {
+			mode = "demo"
+		}
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"status":"ok","mode":"%s"}`, mode)))
+	}).Methods(http.MethodGet)
+	stockHandler.RegisterRoutes(router)
+
+	port := getEnv("SERVICE_PORT", "8084")
+	log.Printf("stock-service listening on :%s", port)
+	if listenErr := http.ListenAndServe(":"+port, router); listenErr != nil {
+		log.Fatalf("server failed: %v", listenErr)
+	}
+}
+
+func getEnv(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	return value
+}

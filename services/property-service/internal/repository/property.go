@@ -4,20 +4,32 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
+	"sync"
+	"time"
 
 	"github.com/agrovision/property-service/internal/models"
 	"github.com/google/uuid"
 )
 
 type PropertyRepository struct {
-	db *sql.DB
+	db    *sql.DB
+	mu    sync.RWMutex
+	items map[string]models.Property
 }
 
 func NewPropertyRepository(db *sql.DB) *PropertyRepository {
-	return &PropertyRepository{db: db}
+	return &PropertyRepository{
+		db:    db,
+		items: make(map[string]models.Property),
+	}
 }
 
 func (r *PropertyRepository) Create(ctx context.Context, prop *models.Property) error {
+	if r.db == nil {
+		return r.createInMemory(prop)
+	}
+
 	prop.ID = uuid.NewString()
 
 	const query = `
@@ -44,6 +56,10 @@ func (r *PropertyRepository) Create(ctx context.Context, prop *models.Property) 
 }
 
 func (r *PropertyRepository) GetByID(ctx context.Context, id string) (*models.Property, error) {
+	if r.db == nil {
+		return r.getByIDInMemory(id)
+	}
+
 	const query = `
 		SELECT id, user_id, name, total_area, planted_area, location_lat, location_lng, soil_type, created_at, updated_at
 		FROM properties
@@ -74,6 +90,10 @@ func (r *PropertyRepository) GetByID(ctx context.Context, id string) (*models.Pr
 }
 
 func (r *PropertyRepository) ListByUserID(ctx context.Context, userID string) ([]models.Property, error) {
+	if r.db == nil {
+		return r.listByUserIDInMemory(userID), nil
+	}
+
 	const query = `
 		SELECT id, user_id, name, total_area, planted_area, location_lat, location_lng, soil_type, created_at, updated_at
 		FROM properties
@@ -116,6 +136,10 @@ func (r *PropertyRepository) ListByUserID(ctx context.Context, userID string) ([
 }
 
 func (r *PropertyRepository) Update(ctx context.Context, prop *models.Property) error {
+	if r.db == nil {
+		return r.updateInMemory(prop)
+	}
+
 	const query = `
 		UPDATE properties
 		SET name = $1,
@@ -149,6 +173,10 @@ func (r *PropertyRepository) Update(ctx context.Context, prop *models.Property) 
 }
 
 func (r *PropertyRepository) Delete(ctx context.Context, id string) error {
+	if r.db == nil {
+		return r.deleteInMemory(id)
+	}
+
 	const query = `DELETE FROM properties WHERE id = $1`
 
 	result, err := r.db.ExecContext(ctx, query, id)
@@ -164,5 +192,75 @@ func (r *PropertyRepository) Delete(ctx context.Context, id string) error {
 		return models.ErrPropertyNotFound
 	}
 
+	return nil
+}
+
+func (r *PropertyRepository) createInMemory(prop *models.Property) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	now := time.Now().UTC()
+	prop.ID = uuid.NewString()
+	prop.CreatedAt = now
+	prop.UpdatedAt = now
+	r.items[prop.ID] = *prop
+	return nil
+}
+
+func (r *PropertyRepository) getByIDInMemory(id string) (*models.Property, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	prop, ok := r.items[id]
+	if !ok {
+		return nil, models.ErrPropertyNotFound
+	}
+	copy := prop
+	return &copy, nil
+}
+
+func (r *PropertyRepository) listByUserIDInMemory(userID string) []models.Property {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	properties := make([]models.Property, 0)
+	for _, item := range r.items {
+		if item.UserID == userID {
+			properties = append(properties, item)
+		}
+	}
+
+	sort.Slice(properties, func(i, j int) bool {
+		return properties[i].CreatedAt.After(properties[j].CreatedAt)
+	})
+
+	return properties
+}
+
+func (r *PropertyRepository) updateInMemory(prop *models.Property) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	existing, ok := r.items[prop.ID]
+	if !ok {
+		return models.ErrPropertyNotFound
+	}
+
+	prop.UserID = existing.UserID
+	prop.CreatedAt = existing.CreatedAt
+	prop.UpdatedAt = time.Now().UTC()
+	r.items[prop.ID] = *prop
+	return nil
+}
+
+func (r *PropertyRepository) deleteInMemory(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.items[id]; !ok {
+		return models.ErrPropertyNotFound
+	}
+
+	delete(r.items, id)
 	return nil
 }

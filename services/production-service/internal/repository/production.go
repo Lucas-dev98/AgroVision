@@ -4,20 +4,32 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
+	"sync"
+	"time"
 
 	"github.com/agrovision/production-service/internal/models"
 	"github.com/google/uuid"
 )
 
 type ProductionRepository struct {
-	db *sql.DB
+	db    *sql.DB
+	mu    sync.RWMutex
+	items map[string]models.Production
 }
 
 func NewProductionRepository(db *sql.DB) *ProductionRepository {
-	return &ProductionRepository{db: db}
+	return &ProductionRepository{
+		db:    db,
+		items: make(map[string]models.Production),
+	}
 }
 
 func (r *ProductionRepository) Create(ctx context.Context, production *models.Production) error {
+	if r.db == nil {
+		return r.createInMemory(production)
+	}
+
 	production.ID = uuid.NewString()
 
 	const query = `
@@ -42,6 +54,10 @@ func (r *ProductionRepository) Create(ctx context.Context, production *models.Pr
 }
 
 func (r *ProductionRepository) GetByID(ctx context.Context, id string) (*models.Production, error) {
+	if r.db == nil {
+		return r.getByIDInMemory(id)
+	}
+
 	const query = `
 		SELECT id, plot_id, harvest_date, quantity_kg, quality_grade, notes, created_at
 		FROM production
@@ -69,6 +85,10 @@ func (r *ProductionRepository) GetByID(ctx context.Context, id string) (*models.
 }
 
 func (r *ProductionRepository) ListByPlotID(ctx context.Context, plotID string) ([]models.Production, error) {
+	if r.db == nil {
+		return r.listByPlotIDInMemory(plotID), nil
+	}
+
 	const query = `
 		SELECT id, plot_id, harvest_date, quantity_kg, quality_grade, notes, created_at
 		FROM production
@@ -107,6 +127,10 @@ func (r *ProductionRepository) ListByPlotID(ctx context.Context, plotID string) 
 }
 
 func (r *ProductionRepository) Update(ctx context.Context, production *models.Production) error {
+	if r.db == nil {
+		return r.updateInMemory(production)
+	}
+
 	const query = `
 		UPDATE production
 		SET harvest_date = $1,
@@ -139,6 +163,10 @@ func (r *ProductionRepository) Update(ctx context.Context, production *models.Pr
 }
 
 func (r *ProductionRepository) Delete(ctx context.Context, id string) error {
+	if r.db == nil {
+		return r.deleteInMemory(id)
+	}
+
 	const query = `DELETE FROM production WHERE id = $1`
 
 	result, err := r.db.ExecContext(ctx, query, id)
@@ -154,5 +182,75 @@ func (r *ProductionRepository) Delete(ctx context.Context, id string) error {
 		return models.ErrProductionNotFound
 	}
 
+	return nil
+}
+
+func (r *ProductionRepository) createInMemory(production *models.Production) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	production.ID = uuid.NewString()
+	production.CreatedAt = time.Now().UTC()
+	r.items[production.ID] = *production
+	return nil
+}
+
+func (r *ProductionRepository) getByIDInMemory(id string) (*models.Production, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	production, ok := r.items[id]
+	if !ok {
+		return nil, models.ErrProductionNotFound
+	}
+	copy := production
+	return &copy, nil
+}
+
+func (r *ProductionRepository) listByPlotIDInMemory(plotID string) []models.Production {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	items := make([]models.Production, 0)
+	for _, item := range r.items {
+		if item.PlotID == plotID {
+			items = append(items, item)
+		}
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].HarvestDate.Equal(items[j].HarvestDate) {
+			return items[i].CreatedAt.After(items[j].CreatedAt)
+		}
+		return items[i].HarvestDate.After(items[j].HarvestDate)
+	})
+
+	return items
+}
+
+func (r *ProductionRepository) updateInMemory(production *models.Production) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	existing, ok := r.items[production.ID]
+	if !ok {
+		return models.ErrProductionNotFound
+	}
+
+	production.PlotID = existing.PlotID
+	production.CreatedAt = existing.CreatedAt
+	r.items[production.ID] = *production
+	return nil
+}
+
+func (r *ProductionRepository) deleteInMemory(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.items[id]; !ok {
+		return models.ErrProductionNotFound
+	}
+
+	delete(r.items, id)
 	return nil
 }
