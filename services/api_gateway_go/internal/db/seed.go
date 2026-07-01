@@ -1,12 +1,11 @@
 package db
-package db
 
 import (
 	"database/sql"
 
-	"agrovision/services/api_gateway_go/internal/models"
-	"agrovision/services/api_gateway_go/internal/repository"
-	"agrovision/services/api_gateway_go/internal/utils"
+	"github.com/agrovision/api-gateway/internal/models"
+	"github.com/agrovision/api-gateway/internal/repository"
+	"github.com/agrovision/api-gateway/internal/utils"
 )
 
 // SeedUsers initializes default users in the database

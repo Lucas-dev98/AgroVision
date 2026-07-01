@@ -1,5 +1,4 @@
 package tests
-package tests
 
 import (
 	"net/http"
@@ -15,7 +14,7 @@ import (
 func TestRateLimiterCreation(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 10,
-		Window:           time.Second,
+		Window:            time.Second,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -25,7 +24,7 @@ func TestRateLimiterCreation(t *testing.T) {
 func TestRateLimiterAllowsRequestsWithinLimit(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 5,
-		Window:           1 * time.Second,
+		Window:            1 * time.Second,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -36,11 +35,8 @@ func TestRateLimiterAllowsRequestsWithinLimit(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		handler := rl.Middleware()
-		c := &testContext{
-			request: req,
-			writer:  w,
-			aborted: false,
-		}
+		_ = req
+		_ = w
 
 		// Call the middleware
 		// Note: In a real scenario, this would be called by gin
@@ -51,7 +47,7 @@ func TestRateLimiterAllowsRequestsWithinLimit(t *testing.T) {
 func TestRateLimiterBlocksExcessRequests(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 2,
-		Window:           1 * time.Second,
+		Window:            1 * time.Second,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -91,7 +87,7 @@ func TestHeaderMiddleware(t *testing.T) {
 func TestRateLimiterCleanup(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 100,
-		Window:           100 * time.Millisecond,
+		Window:            100 * time.Millisecond,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -104,7 +100,7 @@ func TestRateLimiterCleanup(t *testing.T) {
 func TestRateLimiterWithDifferentIPs(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 2,
-		Window:           1 * time.Second,
+		Window:            1 * time.Second,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -117,7 +113,7 @@ func TestRateLimiterWithDifferentIPs(t *testing.T) {
 func TestRateLimiterWindowExpiry(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 5,
-		Window:           100 * time.Millisecond,
+		Window:            100 * time.Millisecond,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -136,7 +132,7 @@ func TestMiddlewareStack(t *testing.T) {
 		middleware.ErrorHandlingMiddleware(zap.NewNop()),
 		middleware.NewRateLimiter(middleware.RateLimitConfig{
 			RequestsPerWindow: 10,
-			Window:           time.Second,
+			Window:            time.Second,
 		}, zap.NewNop()).Middleware(),
 	}
 
@@ -169,7 +165,7 @@ func (tc *testContext) IsAborted() bool {
 func TestRateLimiterMetrics(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 10,
-		Window:           1 * time.Second,
+		Window:            1 * time.Second,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())
@@ -224,7 +220,7 @@ func TestCORSPreflightHeaders(t *testing.T) {
 func TestRateLimiterConcurrency(t *testing.T) {
 	cfg := middleware.RateLimitConfig{
 		RequestsPerWindow: 100,
-		Window:           1 * time.Second,
+		Window:            1 * time.Second,
 	}
 
 	rl := middleware.NewRateLimiter(cfg, zap.NewNop())

@@ -1,5 +1,4 @@
 package tests
-package tests
 
 import (
 	"net/http"
@@ -54,17 +53,17 @@ func TestProxyWithMockUpstream(t *testing.T) {
 
 func TestConfigurationValues(t *testing.T) {
 	cfg := &config.Config{
-		Port:                 8000,
-		Environment:         "test",
-		LogLevel:            "debug",
-		AnimalServiceURL:    "http://localhost:9000",
-		PesagemServiceURL:   "http://localhost:8001",
-		CotacaoServiceURL:   "http://localhost:8002",
-		VisionServiceURL:    "http://localhost:8003",
-		MLServiceURL:        "http://localhost:8004",
-		RateLimitRequests:   100,
-		JWTSecret:           "test-secret",
-		Logger:              zap.NewNop(),
+		Port:              8000,
+		Environment:       "test",
+		LogLevel:          "debug",
+		AnimalServiceURL:  "http://localhost:9000",
+		PesagemServiceURL: "http://localhost:8001",
+		CotacaoServiceURL: "http://localhost:8002",
+		VisionServiceURL:  "http://localhost:8003",
+		MLServiceURL:      "http://localhost:8004",
+		RateLimitRequests: 100,
+		JWTSecret:         "test-secret",
+		Logger:            zap.NewNop(),
 	}
 
 	assert.Equal(t, 8000, cfg.Port)

@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
-	"agrovision/services/api_gateway_go/internal/repository"
-	"agrovision/services/api_gateway_go/internal/utils"
+	"github.com/agrovision/api-gateway/internal/repository"
+	"github.com/agrovision/api-gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -45,9 +45,14 @@ type RefreshResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 }
 
-func NewAuthHandler(db *sql.DB) *AuthHandler {
+func NewAuthHandler(db ...*sql.DB) *AuthHandler {
+	var conn *sql.DB
+	if len(db) > 0 {
+		conn = db[0]
+	}
+
 	return &AuthHandler{
-		userRepo: repository.NewUserRepository(db),
+		userRepo: repository.NewUserRepository(conn),
 	}
 }
 

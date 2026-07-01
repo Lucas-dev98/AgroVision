@@ -1,16 +1,11 @@
 package repository
-package repository
 
 import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
-	"agrovision/services/api_gateway_go/internal/models"
-
-	"agrovision/services/api_gateway_go/internal/repository"
-    "agrovision/services/api_gateway_go/internal/utils"
+	"github.com/agrovision/api-gateway/internal/models"
 )
 
 type UserRepository struct {
@@ -23,6 +18,10 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 
 // Create creates a new user
 func (r *UserRepository) Create(user *models.User) error {
+	if r.db == nil {
+		return errors.New("database not configured")
+	}
+
 	query := `
 		INSERT INTO users (username, email, password_hash, full_name, role, is_active, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
@@ -85,6 +84,10 @@ func (r *UserRepository) GetByID(id int) (*models.User, error) {
 
 // GetByUsername gets a user by username
 func (r *UserRepository) GetByUsername(username string) (*models.User, error) {
+	if r.db == nil {
+		return nil, errors.New("database not configured")
+	}
+
 	user := &models.User{}
 	query := `
 		SELECT id, username, email, password_hash, full_name, role, is_active, created_at, updated_at

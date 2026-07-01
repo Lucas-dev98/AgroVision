@@ -27,6 +27,16 @@ type clientLimiter struct {
 }
 
 func NewRateLimiter(config RateLimitConfig, logger *zap.Logger) *RateLimiter {
+	if config.RequestsPerWindow <= 0 {
+		config.RequestsPerWindow = 100
+	}
+	if config.Window <= 0 {
+		config.Window = time.Minute
+	}
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+
 	rl := &RateLimiter{
 		config:   config,
 		limiters: make(map[string]*clientLimiter),
@@ -50,10 +60,15 @@ func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 		clientID := c.ClientIP()
 
 		if !rl.allow(clientID) {
+			retryAfter := int(rl.config.Window.Seconds())
+			if retryAfter < 1 {
+				retryAfter = 1
+			}
+
 			rl.logger.Warn("Rate limit exceeded", zap.String("client_ip", clientID))
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"error":       "Rate limit exceeded",
-				"retry_after": int(rl.config.Window.Seconds()),
+				"retry_after": retryAfter,
 			})
 			c.Abort()
 			return
