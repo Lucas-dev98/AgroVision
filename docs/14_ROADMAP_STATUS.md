@@ -123,8 +123,11 @@ TOTAL:                 142 testes
 ### ⏳ FASE 13: NUTRIÇÃO SERVICE
 - Modelos de alimentação, refeições, histórico
 - Endpoints de nutrição
+- Endpoint de histórico alimentar por animal
+- Endpoint de resumo diário por propriedade com filtro opcional por animal
+- Persistência PostgreSQL com fallback em memória (DEMO mode)
 - Integração com Animal Service
-- Status: Em andamento (esqueleto + testes iniciais TDD)
+- Status: Em andamento (histórico por animal + resumo diário + persistência PostgreSQL + testes TDD de agregação/validação)
 
 ### ⏳ FASE 14: SAÚDE SERVICE
 - Modelos de vacinas, doenças, tratamentos
@@ -171,7 +174,7 @@ FASE 9:  ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
 FASE 10: ████████████████████ 100% ✅
 FASE 11: ████████████████████ 100% ✅
 FASE 12: ████████████████████ 100% ✅
-FASE 13: ████░░░░░░░░░░░░░░░░  20%  🚧
+FASE 13: ███████████████░░░░░  75%  🚧
 ...
 FASE 17: ░░░░░░░░░░░░░░░░░░░░   0%  ⏳
 
@@ -243,7 +246,7 @@ curl http://localhost:8000/api/v1/animais
 ## 📞 Próximos Passos Imediatos
 
 1. **Validar Proxy com Docker**: Testar com stack completa rodando
-2. **FASE 13 (Nutrição)**: Consolidar modelos e endpoints de alimentação
+2. **FASE 13 (Nutrição)**: Concluir integração com Animal Service e migrations/DDL da tabela nutrition_records no bootstrap de ambiente
 3. **Rate Limiting**: Revisar FASE 8B no backlog legado (status técnico já atendido no gateway Go)
 4. **Logging**: Adicionar logging centralizado para observability
 
