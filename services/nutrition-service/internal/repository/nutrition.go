@@ -71,6 +71,44 @@ func (r *NutritionRepository) ListByAnimalID(_ context.Context, animalID, proper
 	return result, nil
 }
 
+func (r *NutritionRepository) DailySummary(_ context.Context, propertyID, animalID string, date time.Time) (*models.DailyNutritionSummary, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	summary := &models.DailyNutritionSummary{
+		Date:       date.UTC().Format("2006-01-02"),
+		PropertyID: propertyID,
+		AnimalID:   animalID,
+		ByFeedType: make(map[string]float64),
+		ByAnimal:   make(map[string]float64),
+	}
+
+	for _, rec := range r.records {
+		if rec.PropertyID != propertyID {
+			continue
+		}
+		if animalID != "" && rec.AnimalID != animalID {
+			continue
+		}
+		if !sameDayUTC(rec.MealTime, date) {
+			continue
+		}
+
+		summary.RecordsCount++
+		summary.TotalQuantityKg += rec.QuantityKg
+		summary.ByFeedType[rec.FeedType] += rec.QuantityKg
+		if animalID == "" {
+			summary.ByAnimal[rec.AnimalID] += rec.QuantityKg
+		}
+	}
+
+	if animalID != "" {
+		summary.ByAnimal = nil
+	}
+
+	return summary, nil
+}
+
 func (r *NutritionRepository) GetByID(_ context.Context, id string) (*models.NutritionRecord, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -116,4 +154,10 @@ func cloneRecord(src *models.NutritionRecord) *models.NutritionRecord {
 	}
 	dst := *src
 	return &dst
+}
+
+func sameDayUTC(a, b time.Time) bool {
+	au := a.UTC()
+	bu := b.UTC()
+	return au.Year() == bu.Year() && au.Month() == bu.Month() && au.Day() == bu.Day()
 }

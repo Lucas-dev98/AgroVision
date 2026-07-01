@@ -179,3 +179,127 @@ func TestUpdateAndDeleteNutrition(t *testing.T) {
 		t.Fatalf("expected 404 after delete, got %d body=%s", getW.Code, getW.Body.String())
 	}
 }
+
+func TestDailySummaryByPropertyAndAnimal(t *testing.T) {
+	r := setupRouter()
+
+	day := "2026-07-01"
+	nextDay := "2026-07-02"
+	payloads := []map[string]any{
+		{
+			"property_id": "prop-1",
+			"animal_id":   "animal-1",
+			"feed_type":   "silagem",
+			"quantity_kg": 10.0,
+			"meal_time":   day + "T08:00:00Z",
+		},
+		{
+			"property_id": "prop-1",
+			"animal_id":   "animal-1",
+			"feed_type":   "racao",
+			"quantity_kg": 5.0,
+			"meal_time":   day + "T12:00:00Z",
+		},
+		{
+			"property_id": "prop-1",
+			"animal_id":   "animal-2",
+			"feed_type":   "silagem",
+			"quantity_kg": 4.0,
+			"meal_time":   day + "T09:00:00Z",
+		},
+		{
+			"property_id": "prop-1",
+			"animal_id":   "animal-1",
+			"feed_type":   "silagem",
+			"quantity_kg": 7.0,
+			"meal_time":   nextDay + "T08:00:00Z",
+		},
+		{
+			"property_id": "prop-2",
+			"animal_id":   "animal-9",
+			"feed_type":   "feno",
+			"quantity_kg": 3.0,
+			"meal_time":   day + "T08:00:00Z",
+		},
+	}
+
+	for _, payload := range payloads {
+		body, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/nutrition", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected 201, got %d body=%s", w.Code, w.Body.String())
+		}
+	}
+
+	summaryReq := httptest.NewRequest(http.MethodGet, "/nutrition/summary/daily?property_id=prop-1&date="+day, nil)
+	summaryW := httptest.NewRecorder()
+	r.ServeHTTP(summaryW, summaryReq)
+
+	if summaryW.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", summaryW.Code, summaryW.Body.String())
+	}
+
+	var summary map[string]any
+	if err := json.Unmarshal(summaryW.Body.Bytes(), &summary); err != nil {
+		t.Fatalf("failed to parse summary response: %v", err)
+	}
+
+	if summary["records_count"].(float64) != 3 {
+		t.Fatalf("expected 3 records, got %v", summary["records_count"])
+	}
+	if summary["total_quantity_kg"].(float64) != 19.0 {
+		t.Fatalf("expected total 19.0, got %v", summary["total_quantity_kg"])
+	}
+
+	feedType := summary["by_feed_type"].(map[string]any)
+	if feedType["silagem"].(float64) != 14.0 {
+		t.Fatalf("expected silagem 14.0, got %v", feedType["silagem"])
+	}
+	if feedType["racao"].(float64) != 5.0 {
+		t.Fatalf("expected racao 5.0, got %v", feedType["racao"])
+	}
+
+	animalSummaryReq := httptest.NewRequest(http.MethodGet, "/nutrition/summary/daily?property_id=prop-1&animal_id=animal-1&date="+day, nil)
+	animalSummaryW := httptest.NewRecorder()
+	r.ServeHTTP(animalSummaryW, animalSummaryReq)
+
+	if animalSummaryW.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", animalSummaryW.Code, animalSummaryW.Body.String())
+	}
+
+	var animalSummary map[string]any
+	if err := json.Unmarshal(animalSummaryW.Body.Bytes(), &animalSummary); err != nil {
+		t.Fatalf("failed to parse animal summary response: %v", err)
+	}
+
+	if animalSummary["records_count"].(float64) != 2 {
+		t.Fatalf("expected 2 records for animal-1, got %v", animalSummary["records_count"])
+	}
+	if animalSummary["total_quantity_kg"].(float64) != 15.0 {
+		t.Fatalf("expected total 15.0 for animal-1, got %v", animalSummary["total_quantity_kg"])
+	}
+}
+
+func TestDailySummaryInvalidDate(t *testing.T) {
+	r := setupRouter()
+
+	req := httptest.NewRequest(http.MethodGet, "/nutrition/summary/daily?property_id=prop-1&date=01-07-2026", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d body=%s", w.Code, w.Body.String())
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("failed to parse error response: %v", err)
+	}
+
+	if payload["error"] != "date must be in YYYY-MM-DD format" {
+		t.Fatalf("unexpected error message: %v", payload["error"])
+	}
+}

@@ -9,10 +9,21 @@ import (
 var (
 	ErrPropertyIDRequired = errors.New("property_id is required")
 	ErrAnimalIDRequired   = errors.New("animal_id is required")
+	ErrInvalidDateFormat  = errors.New("date must be in YYYY-MM-DD format")
 	ErrFeedTypeRequired   = errors.New("feed_type is required")
 	ErrQuantityInvalid    = errors.New("quantity_kg must be greater than zero")
 	ErrRecordNotFound     = errors.New("nutrition record not found")
 )
+
+type DailyNutritionSummary struct {
+	Date            string             `json:"date"`
+	PropertyID      string             `json:"property_id"`
+	AnimalID        string             `json:"animal_id,omitempty"`
+	RecordsCount    int                `json:"records_count"`
+	TotalQuantityKg float64            `json:"total_quantity_kg"`
+	ByFeedType      map[string]float64 `json:"by_feed_type"`
+	ByAnimal        map[string]float64 `json:"by_animal,omitempty"`
+}
 
 type NutritionRecord struct {
 	ID         string    `json:"id"`

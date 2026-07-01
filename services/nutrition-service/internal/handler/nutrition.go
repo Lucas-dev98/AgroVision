@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/agrovision/nutrition-service/internal/models"
 	"github.com/agrovision/nutrition-service/internal/repository"
@@ -22,6 +23,7 @@ func NewNutritionHandler(repo *repository.NutritionRepository) *NutritionHandler
 func (h *NutritionHandler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/nutrition", h.CreateNutrition).Methods(http.MethodPost)
 	router.HandleFunc("/nutrition", h.ListNutrition).Methods(http.MethodGet)
+	router.HandleFunc("/nutrition/summary/daily", h.GetDailySummary).Methods(http.MethodGet)
 	router.HandleFunc("/nutrition/animal/{animal_id}", h.ListNutritionByAnimal).Methods(http.MethodGet)
 	router.HandleFunc("/nutrition/{id}", h.GetNutrition).Methods(http.MethodGet)
 	router.HandleFunc("/nutrition/{id}", h.UpdateNutrition).Methods(http.MethodPut)
@@ -102,6 +104,38 @@ func (h *NutritionHandler) ListNutritionByAnimal(w http.ResponseWriter, r *http.
 	}
 
 	writeJSON(w, http.StatusOK, records)
+}
+
+func (h *NutritionHandler) GetDailySummary(w http.ResponseWriter, r *http.Request) {
+	propertyID := strings.TrimSpace(r.Header.Get("X-Property-ID"))
+	if propertyID == "" {
+		propertyID = strings.TrimSpace(r.URL.Query().Get("property_id"))
+	}
+	if propertyID == "" {
+		writeError(w, http.StatusBadRequest, models.ErrPropertyIDRequired.Error())
+		return
+	}
+
+	animalID := strings.TrimSpace(r.URL.Query().Get("animal_id"))
+	dateStr := strings.TrimSpace(r.URL.Query().Get("date"))
+
+	summaryDate := time.Now().UTC()
+	if dateStr != "" {
+		parsed, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, models.ErrInvalidDateFormat.Error())
+			return
+		}
+		summaryDate = parsed
+	}
+
+	summary, err := h.repo.DailySummary(r.Context(), propertyID, animalID, summaryDate)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to build daily summary")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, summary)
 }
 
 func (h *NutritionHandler) GetNutrition(w http.ResponseWriter, r *http.Request) {
